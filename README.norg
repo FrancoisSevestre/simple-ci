@@ -1,0 +1,14 @@
+* Simple-CI
+- CI/CD pipeline executor similar to gitlab CI/CD but in local.
+- Base on a git hook executed after a commit.
+- A simple script named .simple-ci.yml is placed at the root of the directory or in .simple-ci folder.
+  - The logs and artifacts are store in a separate folder at the same level that the project folder named <project name>-simple-ci
+
+* Why simple-CI?
+Automation pipelines like GitLab CI/CD are great tools for improving software development.
+However, the syntax can be tidious and the user relies completely on gitlab and it's runners (even though you can create your own runners). 
+Furthermore, installing tools like gitlab and jenkins locally consumes a lot of resources and requires having them running in the background.
+
+Simple-CI/CD solves these issues by providing a dead-simple way for the user to run a CI/CD pipeline.
+
+* Pipeline syntax
