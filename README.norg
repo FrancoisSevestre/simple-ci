@@ -1,8 +1,8 @@
 * Simple-CI
-- CI/CD pipeline executor similar to gitlab CI/CD but in local.
-- Base on a git hook executed after a commit.
+- A CI/CD pipeline executor similar to gitlab CI/CD but in local.
+- Based on a git hook executed after a commit.
 - A simple script named .simple-ci.yml is placed at the root of the directory or in .simple-ci folder.
-  - The logs and artifacts are store in a separate folder at the same level that the project folder named <project name>-simple-ci
+- The logs and artifacts are store in a separate folder at the same level that the project folder named <project name>-simple-ci
 
 * Why simple-CI?
 Automation pipelines like GitLab CI/CD are great tools for improving software development.
@@ -11,4 +11,129 @@ Furthermore, installing tools like gitlab and jenkins locally consumes a lot of 
 
 Simple-CI/CD solves these issues by providing a dead-simple way for the user to run a CI/CD pipeline.
 
+* Commands
+- `simple-ci start`: Create the git hook.
+- `simple-ci stop`: Delete git hook (The pipeline will not be executed).
+- `simple-ci exemple`: Create a basic example of .simple-ci.yml file (if it doesn't exists).
+- `simple-ci init`: Create the git hook and the .simple-ci.yml file (start + example).
+- `simple-ci exec`: Executes the pipeline.
+- `simple-ci cron [time specification]`: Create a cron job.
+
 * Pipeline syntax
+
+** Global organisation
+gobal {
+  stage {
+    job {
+      actions
+    }
+  }
+}
+*** Process
+- -> Stages? 
+-- yes -> run stages according to the order, run jobs inside stages concomitantly.
+-- no  -> Jobs? 
+--- yes -> run jobs according to order
+--- no  -> run script.
+
+** Keywords
+Keywords are used to describe environment and actions performed by the pipeline.
+
+*** /stages/ *global only*
+- Declare stages of the pipeline.
+- The stages will be executed according to the given list order.
+- There is no default stages
+**** Syntax
+@code yaml
+stages:
+  - stage1
+  - stage2
+@end
+
+*** /jobs/ *stage only*
+- Declare the jobs of the stage.
+- If stages are declared, jobs must be declared by referring to the corresponding stage (see syntax).
+- If no stages are declared, jobs will be executed according to the given list order.
+- There is no default jobs.
+**** Syntax
+@code yaml
+stage1:
+  jobs:
+    - job1
+    - job2
+@end
+
+*** /variables/ *global, stage, job*
+- Declare custom variables.
+- Variables can be declared at each levels.
+- Local variables overwrite the global ones locally.
+**** Syntax
+@code yaml
+variables:
+  - Key: "Value"
+  - Key2: "Value2"
+@end
+
+*** /inside_docker/ *global, stage, job*
+- Perform actions inside a docker image.
+- The repository is clone inside the docker image at the given path.
+**** Syntax
+@code yaml
+inside_docker:
+  image: nginx:latest
+  path: /
+@end
+
+*** /script/ *global, job*
+- List the commands to be executed.
+- Can be used at the global if no stages or jobs declared, must be used inside a job otherwise.
+**** Syntax
+@code yaml
+job1:
+  - script:
+      - echo "hello"
+      - echo "world"
+@end
+
+** Script exemple
+@code yaml
+# Two level task organisation
+variables:
+  - GLOBAL_VAR: "Some value"
+
+stages:
+  - stage1
+  - stage2
+
+stage1:
+  variables:
+    - MYVAR: "my value"
+  jobs:
+    - job1
+    - job2
+
+stage2:
+  inside_docker:
+    image: ruby:2.7
+    path: /tmp/
+  jobs:
+    - job3
+
+job1:
+  stage: stage1
+  script:
+    - echo "This is the first job."
+
+job2:
+  inside_docker:
+    image: ruby:2.7
+    path: /tmp/
+  stage: stage1
+  script:
+    - echo "This is the second job."
+
+job3:
+  stage: stage2
+  script:
+    - echo "This is the third job, that executes after stage1 if finished."
+@end
