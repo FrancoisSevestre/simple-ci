@@ -6,7 +6,7 @@
 
 * Why simple-CI?
 Automation pipelines like GitLab CI/CD are great tools for improving software development.
-However, the syntax can be tidious and the user relies completely on gitlab and it's runners (even though you can create your own runners). 
+However, the syntax can be tidious and the user relies completely on gitlab and it's runners (even though you can create your own runners).
 Furthermore, installing tools like gitlab and jenkins locally consumes a lot of resources and requires having them running in the background.
 
 Simple-CI/CD solves these issues by providing a dead-simple way for the user to run a CI/CD pipeline.
@@ -19,6 +19,11 @@ Simple-CI/CD solves these issues by providing a dead-simple way for the user to 
 - `simple-ci exec`: Executes the pipeline.
 - `simple-ci cron [time specification]`: Create a cron job.
 
+* Dependencies
+- bash
+- git
+- yq
+
 * Pipeline syntax
 
 ** Global organisation
@@ -29,10 +34,10 @@ gobal {
     }
   }
 }
-*** Process
-- -> Stages? 
+*** Parsing process
+- -> Stages?
 -- yes -> run stages according to the order, run jobs inside stages concomitantly.
--- no  -> Jobs? 
+-- no  -> Jobs?
 --- yes -> run jobs according to order
 --- no  -> run script.
 
@@ -137,3 +142,22 @@ job3:
   script:
     - echo "This is the third job, that executes after stage1 if finished."
 @end
+
+* TODO
+- [x] Choose language (->bash)
+- [ ] handle arguments
+- [ ] create a basic script and hook
+- [ ] handle creation of the basic exemple
+- [ ] Use yq for yaml parsing
+- [ ] Refine parsing process
+- Implement keywords:
+-- [ ] script
+-- [ ] jobs
+-- [ ] stages
+-- [ ] variables
+-- [ ] inside_docker
+- [ ] Find other keywords
+- Create wiki:
+-- [ ] Find how to make a wiki
+-- [ ] define the structure
+-- [ ] Write basis and beginner tuto
