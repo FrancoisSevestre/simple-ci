@@ -1,0 +1,32 @@
+---
+# Two level task organisation
+variables:
+  - GLOBAL_VAR: "Some value"
+
+stages:
+  - stage1
+  - stage2
+
+stage1:
+  variables:
+    - MYVAR: "my value"
+  jobs:
+    - job1
+    - job2
+
+stage2:
+  jobs:
+    - job3
+
+job1:
+  script:
+    - echo "This is the first job.($GLOBAL_VAR)"
+
+job2:
+  script:
+    - echo "This is the second job.($MYVAR)"
+
+job3:
+    script:
+    - echo "This is the third job, that executes after stage1 if finished."
+

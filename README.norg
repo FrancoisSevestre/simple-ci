@@ -144,16 +144,17 @@ job3:
 @end
 
 * TODO
-- [x] Choose language (->bash)
-- [ ] handle arguments
-- [ ] create a basic script and hook
+- [x] Choose language (->python)
+- [x] handle arguments
+- [x] Create symlinc to /usr/bin
+- [x] create a basic script and hook
 - [ ] handle creation of the basic exemple
-- [ ] Use yq for yaml parsing
-- [ ] Refine parsing process
+- [x] Use yq for yaml parsing
+- [-] Refine parsing process
 - Implement keywords:
--- [ ] script
--- [ ] jobs
--- [ ] stages
+-- [-] script
+-- [-] jobs
+-- [-] stages
 -- [ ] variables
 -- [ ] inside_docker
 - [ ] Find other keywords
