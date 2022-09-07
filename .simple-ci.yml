@@ -1,3 +1,4 @@
 ---
 script:
-  - echo "simplest test"
+  - echo "Analysing the script quality with pylint"
+  - pylint simple-ci.py
