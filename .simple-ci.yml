@@ -5,7 +5,12 @@ stages:
 test:
   jobs:
     - linting
+    - pytest
 
 linting:
   script:
     - pylint simpleci
+
+pytest:
+  script:
+    - pytest simpleci

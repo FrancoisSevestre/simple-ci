@@ -57,6 +57,12 @@ def manage_hook(git_root_dir, present=True):
         os.remove(git_root_dir+"/.git/hooks/post-commit")
     return True
 
+def create_example_file():
+    # Example
+    # check if file exists
+    # create file
+    pass
+
 def get_pipeline_data(git_root_dir):
     """ Get the pipeline data from file.
     Returns:
@@ -213,10 +219,11 @@ elif SELECTOR == "exec":                        # Execution of the .simple-ci.ym
                 sys.exit(1)
 
 elif SELECTOR == "cron":
-    # Create cron job
+    # TODO Create cron job
     pass
 
 elif SELECTOR == "test":
+    # For dev purpose only
     pass
 
 else:

@@ -22,7 +22,7 @@ Simple-CI/CD solves these issues by providing a dead-simple way for the user to 
 * Dependencies
 - bash
 - git
-- yq
+- yaml (python module)
 
 * Pipeline syntax
 
@@ -151,6 +151,7 @@ job3:
 - [ ] handle creation of the basic exemple
 - [x] Use yq for yaml parsing
 - [x] Refine parsing process
+- [ ] Include unit tests
 - Implement keywords:
 -- [x] script
 -- [x] jobs
