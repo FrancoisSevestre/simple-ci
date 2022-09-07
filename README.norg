@@ -150,15 +150,15 @@ job3:
 - [x] create a basic script and hook
 - [ ] handle creation of the basic exemple
 - [x] Use yq for yaml parsing
-- [-] Refine parsing process
+- [x] Refine parsing process
 - Implement keywords:
--- [-] script
--- [-] jobs
--- [-] stages
--- [ ] variables
+-- [x] script
+-- [x] jobs
+-- [x] stages
+-- [x] variables
 -- [ ] inside_docker
 - [ ] Find other keywords
 - Create wiki:
--- [ ] Find how to make a wiki
--- [ ] define the structure
+-- [x] Find how to make a wiki
+-- [x] define the structure
 -- [ ] Write basis and beginner tuto
