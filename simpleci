@@ -42,7 +42,7 @@ def manage_hook(git_root_dir, present=True):
     post_commit_hook = """
     #!/bin/env bash
 
-    simple-ci exec
+    simpleci exec
     """
     # TODO: Check if file exists and is accessible
     # manage hook
