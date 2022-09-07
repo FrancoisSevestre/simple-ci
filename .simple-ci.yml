@@ -1,4 +1,11 @@
 ---
-script:
-  - echo "Analysing the script quality with pylint"
-  - pylint simple-ci.py
+stages:
+  - test
+
+test:
+  jobs:
+    - linting
+
+linting:
+  script:
+    - pylint simpleci
