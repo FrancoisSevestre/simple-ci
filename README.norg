@@ -144,22 +144,28 @@ job3:
 @end
 
 * TODO
-- [x] Choose language (->python)
-- [x] handle arguments
-- [x] Create symlinc to /usr/bin
-- [x] create a basic script and hook
-- [ ] handle creation of the basic exemple
-- [x] Use yq for yaml parsing
-- [x] Refine parsing process
-- [ ] Include unit tests
-- Implement keywords:
--- [x] script
--- [x] jobs
--- [x] stages
--- [x] variables
--- [ ] inside_docker
-- [ ] Find other keywords
-- Create wiki:
+- basics:
+-- [x] Choose language (->python)
+-- [x] handle arguments
+-- [x] Create symlinc to /usr/bin
+-- [x] create a basic script and hook
+-- [x] Use yq for yaml parsing
+-- [x] Refine parsing process
+-- [ ] handle creation of the basic exemple
+-- [ ] Include unit tests
+
+-- Implement keywords:
+--- [x] script
+--- [x] jobs
+--- [x] stages
+--- [x] variables
+--- [ ] inside_docker
+-- [ ] Find other keywords
+
+- Wiki:
 -- [x] Find how to make a wiki
 -- [x] define the structure
--- [ ] Write basis and beginner tuto
+-- [-] Write basis and beginner tuto
+-- [-] Roadmap
+
+- Improvements:
