@@ -66,14 +66,16 @@ You will find the complete syntax documentation on the [Wiki](https://gitlab.com
 ## Installation
 There is no packaged version yet. The `simpleci` script must be accessible by the hook so you need move it to a folder in your $PATH.
 ``` bash
+# Clone the repo
 git clone https://gitlab.com/FrancoisSevestre/simple-ci.git
-mv simpleci <SomeFolderInYourEnvPath> # Use 'echo $PATH' to find one.
+# Make the script executable as a command
+mv simple-ci/simpleci <SomeFolderInYourEnvPath> # Use 'echo $PATH' to find one.
 ```
 
 ### Dependencies
 - bash
 - git
-- yaml (python module)
+- [yaml](https://pyyaml.org/wiki/PyYAMLDocumentation) (python module)
 
 ## Contributing
 Feel free to submit issues is you want to contribute.
