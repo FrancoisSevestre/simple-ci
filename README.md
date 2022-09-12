@@ -26,7 +26,7 @@ Check the [Wiki](https://gitlab.com/FrancoisSevestre/simple-ci/-/wikis/home) for
 ## Simple example of .simple-ci.yml script
 ``` yaml
 variables:
-  - GLOBAL_VAR: "last"
+  GLOBAL_VAR: "last"
 
 stages:
   - stage1
@@ -34,7 +34,7 @@ stages:
 
 stage1:
   variables:
-    - MYVAR: "second"
+    MYVAR: "second"
   jobs:
     - job1
     - job2

@@ -1,6 +1,15 @@
 ---
 stages:
+  - welcome
   - test
+
+welcome:
+  jobs:
+    - sayhello
+
+sayhello:
+  script:
+    - echo "Hello world"
 
 test:
   jobs:
@@ -12,5 +21,12 @@ linting:
     - pylint simpleci
 
 pytest:
+  inside_docker:
+    image: ubuntu
+    path: /
   script:
-    - pytest simpleci
+    - cat /etc/os-release
+    - ls
+    - mkdir IAmANewFolder
+    - ls | grep Folder
+    - cat .simple-ci.yml
