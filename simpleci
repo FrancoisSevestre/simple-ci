@@ -216,6 +216,7 @@ if __name__ == '__main__':
         sys.exit(manage_hook(get_root_dir()))       # start
 
     elif SELECTOR == "exec":                        # Execution of the .simple-ci.yml script
+        log("\n>>>>>>\nStarting the pipeline execution\n", True)
 
         ### Global scope ###
         data = get_pipeline_data(get_root_dir())    # Collect data from script
@@ -369,6 +370,7 @@ if __name__ == '__main__':
                     else:
                         print("No script found") # TODO raise an error
                         sys.exit(1)
+        log("<<<<<\nEnd of the pipeline", True)
 
     elif SELECTOR == "cron":
         # TODO Create cron job
