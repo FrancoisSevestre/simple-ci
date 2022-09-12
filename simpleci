@@ -13,7 +13,7 @@ import yaml
 
 ############## Functions ##############
 def get_root_dir():
-    """ Get the root directory og the git repo.
+    """ Get the root directory of the git repo.
     Returns:
         An absolute path.
     """
@@ -44,24 +44,69 @@ def manage_hook(git_root_dir, present=True):
 
     simpleci exec
     """
-    # TODO: Check if file exists and is accessible
     # manage hook
-    if present:
+    if present:                                             # Create the hook file
         with open(git_root_dir+"/.git/hooks/post-commit", 'w', encoding="utf-8") as file:
             file.write(post_commit_hook)
         os.chmod(git_root_dir+"/.git/hooks/post-commit", 0o755)
-        print("Git hook created.\
+        print("Git hook created.                                 \
             \nIt will execute the pipeline after the next commit.\
             \nAlternatively, you can trigger the pipeline with \'simple-ci exec\'")
     else:
-        os.remove(git_root_dir+"/.git/hooks/post-commit")
+        os.remove(git_root_dir+"/.git/hooks/post-commit")   # Remove the hook file
     return True
 
-def create_example_file():
+def create_example_file(git_root_dir):
+    """
+    Creates an example .simple-ci.yml file at the git root dir if it doesn't exists
+    """
     # Example
+    example_file_data = \
+"""---
+variables:
+  GLOBAL_VAR: "last"
+
+stages:
+  - stage1
+  - stage2
+
+stage1:
+  variables:
+    MYVAR: "second"
+  jobs:
+    - job1
+    - job2
+
+stage2:
+  inside_docker:
+    image: ruby:2.7
+    path: /tmp/
+  jobs:
+    - job3
+
+job1:
+  script:
+    - echo "This is the first job."
+
+job2:
+  inside_docker:
+    image: ruby:2.7
+    path: /tmp/
+  script:
+    - echo "This is the $MYVAR job."
+
+job3:
+    script:
+    - echo "This is the $GLOBAL_VAR job, that will be executed after stage1 is completed."
+"""
     # check if file exists
-    # create file
-    pass
+    if os.path.isfile(git_root_dir+"/.simple-ci.yml"):
+        print("File exists: Example creation skipped.")
+    else:
+        # create file
+        with open(git_root_dir+"/.simple-ci.yml", 'w', encoding="utf-8") as file:
+            file.write(example_file_data)
+        print("The .simple-ci.yml file has been created. Check it, try it and customize it!")
 
 def get_pipeline_data(git_root_dir):
     """ Get the pipeline data from file.
@@ -97,135 +142,242 @@ def exec_script_command(script_command, env):
     env_cmd = "true"
 
     for var_key in env:                                         # Add env variables declaration
-        env_cmd = env_cmd+" && "+var_key+"=\""+str(env[var_key])+"\""
+        env_cmd = env_cmd + \
+                " && " +    \
+                var_key + "=\"" + str(env[var_key]) + "\""
 
-    passed_command = "bash -c \'"+env_cmd+" && "+script_command+"\'"   # Assemble final command
+    passed_command = "bash -c \'" + \
+            env_cmd +               \
+            " && " +                \
+            script_command +        \
+            "\'"                                                # Assemble final command
+
     log(str(subprocess.getoutput(passed_command)))              # Exec and log
 
+def create_container(docker_image):
+    """
+    Creates a docker container of the specified image.
+    Returns:
+        container_hash (str)
+    """
+    cont = subprocess.getoutput("docker run -td " + docker_image) # Create container
+    cont = cont.split(sep='\n')[-1][0:11]
+    # os.system("docker container start " + cont + " > /dev/null")          # start container
+    return cont
+
+def exec_script_command_in_docker(script_command, env, cont_id):
+    """
+    Execute a command with the given env in the given container.
+    """
+    env_cmd = "true"
+
+    for var_key in env:                                         # Add env variables declaration
+        env_cmd = env_cmd + \
+                " && " +    \
+                var_key + "=\"" + str(env[var_key]) + "\""
+
+    passed_command = "sh -c \'" + \
+            env_cmd +             \
+            " && " +              \
+            script_command +      \
+            "\'"                                                # Assemble final command
+    full_command = "docker exec " + cont_id + " " + passed_command+ " \n"
+    print(full_command)
+    log(str(subprocess.getoutput(full_command)))
+
+def copy_files_to_docker(cont_id, path):
+    """
+    Copies the current git folder to container at the given path.
+    """
+    log(f"Files will be copied to the container {cont_id} at \'{path}\'")
+    # os.system(f"cp -r . {get_root_dir()}_simple-ci/" )
+    os.system(f"docker cp . {cont_id}:{path}")
+
+def stop_container(cont_id):
+    """
+    Stops a docker container.
+    """
+    os.system("docker rm -f " + cont_id + " > /dev/null")
+
 ############## Main ##############
-args = sys.argv
-script_name = args.pop(0) # Remove script name from the list
-SELECTOR = args[0]
+if __name__ == '__main__':
+    args = sys.argv
+    script_name = args.pop(0)                       # Remove script name from the list
+    SELECTOR = args[0]
 
-if SELECTOR == "start":
-    # Create the hook file
-    sys.exit(manage_hook(get_root_dir()))
+    if SELECTOR == "start":
+        sys.exit(manage_hook(get_root_dir()))       # Create the hook file
 
-elif SELECTOR == "stop":
-    # Delete the hook file
-    sys.exit(manage_hook(get_root_dir(), False))
+    elif SELECTOR == "stop":
+        sys.exit(manage_hook(get_root_dir(), False))# Delete the hook file
 
-elif SELECTOR == "init":
-    # start + create the .simple-ci.yml file
-    sys.exit(manage_hook(get_root_dir()))
-    # TODO Add example file
+    elif SELECTOR == "init":
+        create_example_file(get_root_dir())         # Create the .simple-ci.yml file
+        sys.exit(manage_hook(get_root_dir()))       # start
 
-elif SELECTOR == "exec":                        # Execution of the .simple-ci.yml script
+    elif SELECTOR == "exec":                        # Execution of the .simple-ci.yml script
 
-    ### Global scope ###
-    data = get_pipeline_data(get_root_dir())        # Collect data from script
+        ### Global scope ###
+        data = get_pipeline_data(get_root_dir())    # Collect data from script
 
-    # Variables
-    if 'variables' in data:                         # if user declared variables in global scope
-        global_env = data['variables']
-    else:
-        global_env = {}
+        # Variables
+        if 'variables' in data:                     # if user declared variables in global scope
+            global_env = data['variables']
+        else:
+            global_env = {}
 
-    # Inside docker                                 # if user declared a docker (global scope)
-    # TODO
+        # Inside docker                             # if user declared a docker (global scope)
+        if 'inside_docker' in data:
+            global_docker = data['inside_docker']
+        else:
+            global_docker = {}
 
-    # stages
-    if 'stages' in data:                            # if user declared stages in global scope
-        for stage in data['stages']:
-            log("###### Stage \'" + str(stage) + "\' ######", True)
+        # stages
+        if 'stages' in data:                        # if user declared stages in global scope
+            for stage in data['stages']:
+                log("###### Stage \'" + str(stage) + "\' ######\n", True)
 
-            ### Stage scope ###
-            stage = data[stage]                     # get data from stage
+                ### Stage scope ###
+                stage = data[stage]                 # get data from stage
 
-            # variables
-            if 'variables' in stage:                # if user declared variables in the stage scope
-                stage_env = global_env | stage['variables'] # merge dicts with overwrite
-            else:
-                stage_env = global_env
+                # variables
+                if 'variables' in stage:            # if user declared variables in the stage scope
+                    stage_env = global_env | stage['variables'] # merge dicts with overwrite
+                else:
+                    stage_env = global_env
 
-            # Inside docker                         # if user declared a docker option (stage scope)
-            # TODO
+                # Inside docker
+                if 'inside_docker' in stage:        # if user declared variables in the stage scope
+                    stage_docker = global_docker | stage['inside_docker']# merge dicts + overwrite
+                else:
+                    stage_docker = global_docker
 
-            # Jobs
-            if 'jobs' in stage:                     # Check if user declared jobs in this stage
-                for job in stage['jobs']:
+                # Jobs
+                if 'jobs' in stage:                 # Check if user declared jobs in this stage
+                    for job in stage['jobs']:
+                        log("#### Job \'" + str(job) + "\' ####", True)
+
+                        ### Job scope ###
+                        job = data[job]             # get data from job
+
+                        # variables
+                        if 'variables' in job:      # if user declared variables in the job scope
+                            job_env = stage_env | job['variables']
+                        else:
+                            job_env = stage_env
+
+                        # Inside docker             # if user declared a docker option (job scope)
+                        if 'inside_docker' in job:  # if user declared variables in the job scope
+                            job_docker = stage_docker | job['inside_docker']
+                        else:
+                            job_docker = stage_docker
+
+                        # Script
+                        if job_docker != {}:
+                            log(f"A \'{job_docker['image']}\' container is required.")
+                            container_id = create_container(job_docker['image'])
+                            copy_files_to_docker(container_id, job_docker['path'])
+                            log(f"Container \'{container_id}\' as been created.")
+                            if 'script' in job:         # Check if user defined script in this job
+                                script = job['script']
+                                for command in script:
+                                    log("## > " + str(command), True)
+                                    exec_script_command_in_docker(command, job_env, container_id)
+                            else:
+                                print("No script found for the job") # TODO raise an error
+                            stop_container(container_id)
+
+                        else:
+                            if 'script' in job:         # Check if user defined script in this job
+                                script = job['script']
+                                for command in script:
+                                    log("## > " + str(command), True)
+                                    exec_script_command(command, job_env)
+                            else:
+                                print("No script found for the job") # TODO raise an error
+                else:
+                    print("No jobs found fo this stage.") # TODO raise an error
+
+        # Jobs
+        else:
+            if 'jobs' in data:                      # if user declared jobs in global scope
+                for job in data['jobs']:
                     log("#### Job \'" + str(job) + "\' ####", True)
 
                     ### Job scope ###
-                    job = data[job]                 # get data from job
+                    job = data[job]
 
-                    # variables
-                    if 'variables' in job:          # if user declared variables in the job scope
-                        job_env = stage_env | job['variables']
+                    # variables                     # if user declared variables in the job scope
+                    if 'variables' in job:
+                        job_env = global_env | job['variables']
                     else:
-                        job_env = stage_env
+                        job_env = global_env
 
                     # Inside docker                 # if user declared a docker option (job scope)
-                    # TODO
+                    if 'inside_docker' in job:  # if user declared variables in the job scope
+                        job_docker = global_docker | job['inside_docker']
+                    else:
+                        job_docker = global_docker
 
                     # Script
-                    if 'script' in job:             # Check if user defined script in this job
-                        script = job['script']
+                    if job_docker != {}:
+                        log(f"A \'{job_docker['image']}\' container is required.")
+                        container_id = create_container(job_docker['image'])
+                        copy_files_to_docker(container_id, job_docker['path'])
+                        log(f"Container \'{container_id}\' as been created.")
+                        if 'script' in job:         # Check if user defined script in this job
+                            script = job['script']
+                            for command in script:
+                                log("## > " + str(command), True)
+                                exec_script_command_in_docker(command, job_env, container_id)
+                        else:
+                            print("No script found for the job") # TODO raise an error
+                        stop_container(container_id)
+
+                    else:
+                        if 'script' in job:             # Check if user defined script in this job
+                            script = job['script']
+                            for command in script:
+                                log("## > " + str(command), True)
+                                exec_script_command(command, job_env)
+                        else:
+                            print("No script found for the job") # TODO raise an error
+                            sys.exit(1)
+
+        # Script
+            else:
+                if global_docker != {}:
+                    log(f"A \'{global_docker['image']}\' container is required.")
+                    container_id = create_container(global_docker['image'])
+                    copy_files_to_docker(container_id, global_docker['path'])
+                    log(f"Container \'{container_id}\' as been created.")
+                    if 'script' in data:            # Check if user defined script (global scope)
+                        script = data['script']
                         for command in script:
                             log("## > " + str(command), True)
-                            exec_script_command(command, job_env)
+                            exec_script_command_in_docker(command, global_env, container_id)
                     else:
-                        print("No script found for the job") # TODO raise an error
-            else:
-                print("No jobs found fo this stage.") # TODO raise an error
+                        print("No script found") # TODO raise an error
+                    stop_container(container_id)
 
-    # Jobs
+                else:
+                    if 'script' in data:            # Check if user defined script (global scope)
+                        script = data['script']
+                        for command in script:
+                            log("## > " + str(command), True)
+                            exec_script_command(command, global_env)
+                    else:
+                        print("No script found") # TODO raise an error
+                        sys.exit(1)
+
+    elif SELECTOR == "cron":
+        # TODO Create cron job
+        pass
+
+    elif SELECTOR == "test":
+        # For dev purpose only
+        pass
+
     else:
-        if 'jobs' in data:                          # if user declared jobs in global scope
-            for job in data['jobs']:
-                log("#### Job \'" + str(job) + "\' ####", True)
-
-                ### Job scope ###
-                job = data[job]
-
-                # variables                         # if user declared variables in the job scope
-                if 'variables' in job:
-                    job_env = global_env | job['variables']
-                else:
-                    job_env = global_env
-
-                # Inside docker                      # if user declared a docker option (job scope)
-                # TODO
-
-                # Script
-                if 'script' in job:                  # Check if user defined script in this job
-                    script = job['script']
-                    for command in script:
-                        log("## > " + str(command), True)
-                        exec_script_command(command, job_env)
-                else:
-                    print("No script found for the job") # TODO raise an error
-                    sys.exit(1)
-
-    # Script
-        else:
-            if 'script' in data:                     # Check if user defined script (global scope)
-                script = data['script']
-                for command in script:
-                    log("## > " + str(command), True)
-                    exec_script_command(command, global_env)
-            else:
-                print("No script found") # TODO raise an error
-                sys.exit(1)
-
-elif SELECTOR == "cron":
-    # TODO Create cron job
-    pass
-
-elif SELECTOR == "test":
-    # For dev purpose only
-    pass
-
-else:
-    print("Wrong argument")
-    sys.exit(1)
+        print("Wrong argument")
+        sys.exit(1)
