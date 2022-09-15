@@ -1,0 +1,52 @@
+* TODO
+- [ ] Change hook from post to pre
+- [ ] Create a pip package
+- [ ] Include packaging in pipeline
+- [!] Get success status of every command
+-- errors written in tmp file + check if empty?
+- [ ] Add precisions to wiki (use bash and sh in docker)
+- [!] Check file existence in start delete and init
+- [ ] Implement cron
+- [!] Create Exceptions and raise errors
+-- file doesn't exist
+-- Command returned error
+-- Container isn't running
+-- bad syntax (no jobs, no script)
+- [ ] Check use of subprocess.getoutput vs os.system
+- [!] Add specify pipeline file + create test pipelines (every possible case)
+- [ ] refactor script execution
+- [ ] move functions to module file
+- [ ] Assert functions are pure.
+- [!] Artifacts
+- [!] Sandbox folder (change work dir)
+- [ ] Conditionnals
+- [ ] Include unit tests
+- [-] Write a proper pipeline
+- [ ] Format simple-ci.log
+- [ ] Find other keywords
+- [ ] Run jobs concomitantly
+- [ ] Config file: cmd interpreter, docker ,etc
+- [ ] secrets
+
+* DONE
+- basics:
+-- [x] Choose language (->python)
+-- [x] handle arguments
+-- [x] Create symlinc to /usr/bin
+-- [x] create a basic script and hook
+-- [x] Use yq for yaml parsing
+-- [x] Refine parsing process
+-- [x] handle creation of the basic exemple
+- Wiki:
+-- [x] Find how to make a wiki
+-- [x] define the structure
+-- [x] Write basis and beginner tuto
+-- [x] Roadmap
+
+-- Implement keywords:
+--- [x] script
+--- [x] jobs
+--- [x] stages
+--- [x] variables
+--- [x] inside_docker
+
