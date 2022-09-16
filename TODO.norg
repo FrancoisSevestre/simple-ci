@@ -14,14 +14,14 @@
 -- bad syntax (no jobs, no script)
 - [ ] Check use of subprocess.getoutput vs os.system
 - [!] Add specify pipeline file + create test pipelines (every possible case)
-- [ ] refactor script execution
+- [x] refactor script execution
 - [ ] move functions to module file
 - [ ] Assert functions are pure.
-- [!] Artifacts
+- [-] Artifacts
 - [!] Sandbox folder (change work dir)
 - [ ] Conditionnals
 - [ ] Include unit tests
-- [-] Write a proper pipeline
+- [ ] Write a proper pipeline
 - [ ] Format simple-ci.log
 - [ ] Find other keywords
 - [ ] Run jobs concomitantly

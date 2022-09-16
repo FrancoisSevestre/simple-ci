@@ -199,6 +199,24 @@ def stop_container(cont_id):
     """
     os.system("docker rm -f " + cont_id + " > /dev/null")
 
+def run_script(script_to_run, job_env_to_run, job_docker_to_run):
+    """Execution of the script commands on the given env"""
+
+    if job_docker_to_run != {}:
+        log(f"A \'{job_docker_to_run['image']}\' container is required.")
+        container_id = create_container(job_docker_to_run['image'])
+        copy_files_to_docker(container_id, job_docker_to_run['path'])
+        log(f"Container \'{container_id}\' as been created.")
+        for command in script_to_run:
+            log("## > " + str(command), True)
+            exec_script_command_in_docker(command, job_env_to_run, container_id)
+        stop_container(container_id)
+
+    else:
+        for command in script_to_run:
+            log("## > " + str(command), True)
+            exec_script_command(command, job_env_to_run)
+
 ############## Main ##############
 if __name__ == '__main__':
     args = sys.argv
@@ -274,28 +292,11 @@ if __name__ == '__main__':
                             job_docker = stage_docker
 
                         # Script
-                        if job_docker != {}:
-                            log(f"A \'{job_docker['image']}\' container is required.")
-                            container_id = create_container(job_docker['image'])
-                            copy_files_to_docker(container_id, job_docker['path'])
-                            log(f"Container \'{container_id}\' as been created.")
-                            if 'script' in job:         # Check if user defined script in this job
-                                script = job['script']
-                                for command in script:
-                                    log("## > " + str(command), True)
-                                    exec_script_command_in_docker(command, job_env, container_id)
-                            else:
-                                print("No script found for the job") # TODO raise an error
-                            stop_container(container_id)
-
+                        if 'script' in job:         # Check if user defined script in this job
+                            job_script = job['script']
+                            run_script(job_script, job_env, job_docker)
                         else:
-                            if 'script' in job:         # Check if user defined script in this job
-                                script = job['script']
-                                for command in script:
-                                    log("## > " + str(command), True)
-                                    exec_script_command(command, job_env)
-                            else:
-                                print("No script found for the job") # TODO raise an error
+                            print("No script found for the job") # TODO raise an error
                 else:
                     print("No jobs found fo this stage.") # TODO raise an error
 
@@ -321,55 +322,20 @@ if __name__ == '__main__':
                         job_docker = global_docker
 
                     # Script
-                    if job_docker != {}:
-                        log(f"A \'{job_docker['image']}\' container is required.")
-                        container_id = create_container(job_docker['image'])
-                        copy_files_to_docker(container_id, job_docker['path'])
-                        log(f"Container \'{container_id}\' as been created.")
-                        if 'script' in job:         # Check if user defined script in this job
-                            script = job['script']
-                            for command in script:
-                                log("## > " + str(command), True)
-                                exec_script_command_in_docker(command, job_env, container_id)
-                        else:
-                            print("No script found for the job") # TODO raise an error
-                        stop_container(container_id)
-
+                    if 'script' in job:         # Check if user defined script in this job
+                        job_script = job['script']
+                        run_script(job_script, job_env, job_docker)
                     else:
-                        if 'script' in job:             # Check if user defined script in this job
-                            script = job['script']
-                            for command in script:
-                                log("## > " + str(command), True)
-                                exec_script_command(command, job_env)
-                        else:
-                            print("No script found for the job") # TODO raise an error
-                            sys.exit(1)
+                        print("No script found for the job") # TODO raise an error
 
         # Script
             else:
-                if global_docker != {}:
-                    log(f"A \'{global_docker['image']}\' container is required.")
-                    container_id = create_container(global_docker['image'])
-                    copy_files_to_docker(container_id, global_docker['path'])
-                    log(f"Container \'{container_id}\' as been created.")
-                    if 'script' in data:            # Check if user defined script (global scope)
-                        script = data['script']
-                        for command in script:
-                            log("## > " + str(command), True)
-                            exec_script_command_in_docker(command, global_env, container_id)
-                    else:
-                        print("No script found") # TODO raise an error
-                    stop_container(container_id)
-
+                if 'script' in data:         # Check if user defined script in this job
+                    global_script = data['script']
+                    run_script(global_script, global_env, global_docker)
                 else:
-                    if 'script' in data:            # Check if user defined script (global scope)
-                        script = data['script']
-                        for command in script:
-                            log("## > " + str(command), True)
-                            exec_script_command(command, global_env)
-                    else:
-                        print("No script found") # TODO raise an error
-                        sys.exit(1)
+                    print("No script found for the job") # TODO raise an error
+
         log("<<<<<\nEnd of the pipeline", True)
 
     elif SELECTOR == "cron":
