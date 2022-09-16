@@ -242,13 +242,11 @@ if __name__ == '__main__':
         data = get_pipeline_data(get_root_dir())    # Collect data from script
 
         # check suplemental args
-        for opt in OPTIONS:
-            if OPTIONS[0]: # If first arg is not false
-                if OPTIONS[0] in ("--file", "-f"):
-                    path_to_script = args[2]
-                    data = get_pipeline_data(get_root_dir(), path_to_script)    # Collect data from script
-            else:
-                pass
+        if OPTIONS[0] in ("--file", "-f"):
+            path_to_script = OPTIONS[1]
+            data = get_pipeline_data(get_root_dir(), str(path_to_script))    # Collect data from script
+        else:
+            pass
 
         log("\n>>>>>>\nStarting the pipeline execution\n", True)
         ### Global scope ###
