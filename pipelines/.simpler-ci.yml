@@ -1,0 +1,7 @@
+---
+jobs:
+  - pytest
+
+pytest:
+  script:
+    - cat /etc/os-release
