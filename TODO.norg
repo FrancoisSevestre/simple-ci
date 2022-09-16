@@ -17,8 +17,9 @@
 - [x] refactor script execution
 - [ ] move functions to module file
 - [ ] Assert functions are pure.
-- [-] Artifacts
-- [!] Sandbox folder (change work dir)
+- [x] Artifacts folder
+- [ ] Artifacts as keyword
+- [x] Sandbox folder (change work dir)
 - [ ] Conditionnals
 - [ ] Include unit tests
 - [ ] Write a proper pipeline
@@ -28,6 +29,7 @@
 - [ ] Config file: cmd interpreter, docker ,etc
 - [ ] secrets
 - [ ] create help for each arg
+- [ ] Mesure execution time
 
 * DONE
 - basics:

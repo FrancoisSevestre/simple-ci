@@ -10,6 +10,7 @@ import sys
 import os
 import subprocess
 import yaml
+from datetime import datetime
 
 ############## Functions ##############
 def get_root_dir():
@@ -185,7 +186,7 @@ def exec_script_command_in_docker(script_command, env, cont_id):
     print(full_command)
     log(str(subprocess.getoutput(full_command)))
 
-def copy_files_to_docker(cont_id, path):
+def copy_files_to_docker(cont_id, path): # TODO Function impure
     """
     Copies the current git folder to container at the given path.
     """
@@ -199,23 +200,46 @@ def stop_container(cont_id):
     """
     os.system("docker rm -f " + cont_id + " > /dev/null")
 
-def run_script(script_to_run, job_env_to_run, job_docker_to_run):
+def create_artifacts_folder(git_root_dir):
+    """"""
+    artifacts_dir = git_root_dir+"-artifacts"
+    try:
+        os.mkdir(artifacts_dir)       # Create the common artifacts folder
+        print("Artifacts folder created.")
+    except FileExistsError:
+        print("Artifacts folder already exists.")
+    run_dir = os.path.join(artifacts_dir, datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+    try:
+        os.mkdir(run_dir)             # Create the run folder
+    except FileExistsError:
+        print("Run folder already exists. (last one created less than a second ago)")
+    return run_dir
+
+
+def run_script(script_to_run, job_env_to_run, job_docker_to_run, git_root_dir, artifacts_dir):
     """Execution of the script commands on the given env"""
 
-    if job_docker_to_run != {}:
+    if job_docker_to_run != {}: # For inside_docker execution
         log(f"A \'{job_docker_to_run['image']}\' container is required.")
-        container_id = create_container(job_docker_to_run['image'])
-        copy_files_to_docker(container_id, job_docker_to_run['path'])
+        container_id = create_container(job_docker_to_run['image'])     # Creating container
+        copy_files_to_docker(container_id, job_docker_to_run['path'])   # copy files to docker
         log(f"Container \'{container_id}\' as been created.")
-        for command in script_to_run:
+        for command in script_to_run:                                   # Exec script in docker
             log("## > " + str(command), True)
             exec_script_command_in_docker(command, job_env_to_run, container_id)
-        stop_container(container_id)
+        stop_container(container_id)                                    # Kill container
 
-    else:
+    else: # for local execution
+        os.system(f"shopt -s dotglob && cp -r {git_root_dir}/* {artifacts_dir}")
+        current_dir = os.getcwd()
+        print(current_dir)
+        os.chdir(artifacts_dir)
+        print(os.getcwd())
         for command in script_to_run:
             log("## > " + str(command), True)
             exec_script_command(command, job_env_to_run)
+        os.chdir(current_dir)
+        print(current_dir)
 
 ############## Main ##############
 if __name__ == '__main__':
@@ -238,6 +262,9 @@ if __name__ == '__main__':
         sys.exit(manage_hook(get_root_dir()))       # start
 
     elif SELECTOR == "exec":                        # Execution of the .simple-ci.yml script
+
+        # Prepare artifacts folder
+        artifacts_dir = create_artifacts_folder(get_root_dir())
 
         data = get_pipeline_data(get_root_dir())    # Collect data from script
 
@@ -306,7 +333,7 @@ if __name__ == '__main__':
                         # Script
                         if 'script' in job:         # Check if user defined script in this job
                             job_script = job['script']
-                            run_script(job_script, job_env, job_docker)
+                            run_script(job_script, job_env, job_docker, get_root_dir(), artifacts_dir)
                         else:
                             print("No script found for the job") # TODO raise an error
                 else:
@@ -336,7 +363,7 @@ if __name__ == '__main__':
                     # Script
                     if 'script' in job:         # Check if user defined script in this job
                         job_script = job['script']
-                        run_script(job_script, job_env, job_docker)
+                        run_script(job_script, job_env, job_docker, get_root_dir(), artifacts_dir)
                     else:
                         print("No script found for the job") # TODO raise an error
 
@@ -344,7 +371,7 @@ if __name__ == '__main__':
             else:
                 if 'script' in data:         # Check if user defined script in this job
                     global_script = data['script']
-                    run_script(global_script, global_env, global_docker)
+                    run_script(global_script, global_env, global_docker, get_root_dir(), artifacts_dir)
                 else:
                     print("No script found for the job") # TODO raise an error
 
