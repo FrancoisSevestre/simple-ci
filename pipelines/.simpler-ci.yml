@@ -4,4 +4,4 @@ jobs:
 
 pytest:
   script:
-    - cat /etc/os-release
+    - cat /etc/os-release > os.release
