@@ -10,6 +10,7 @@ import sys
 import os
 import subprocess
 import yaml
+from datetime import datetime
 
 ############## Functions ##############
 def get_root_dir():
@@ -199,20 +200,33 @@ def stop_container(cont_id):
     """
     os.system("docker rm -f " + cont_id + " > /dev/null")
 
+def create_artifacts_folder(git_root_dir):
+    """"""
+    artifacts_dir = git_root_dir+"-artifacts"
+    try:
+        os.mkdir(artifacts_dir)
+        print("Artifacts folder created")
+    except FileExistsError:
+        print("Artifacts folder already exists")
+    run_dir = os.path.join(artifacts_dir, datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+    os.mkdir(run_dir)
+    return artifacts_dir
+
+
 def run_script(script_to_run, job_env_to_run, job_docker_to_run):
     """Execution of the script commands on the given env"""
 
-    if job_docker_to_run != {}:
+    if job_docker_to_run != {}: # For inside_docker execution
         log(f"A \'{job_docker_to_run['image']}\' container is required.")
-        container_id = create_container(job_docker_to_run['image'])
-        copy_files_to_docker(container_id, job_docker_to_run['path'])
+        container_id = create_container(job_docker_to_run['image'])     # Creating container
+        copy_files_to_docker(container_id, job_docker_to_run['path'])   # copy files to docker
         log(f"Container \'{container_id}\' as been created.")
-        for command in script_to_run:
+        for command in script_to_run:                                   # Exec script in docker
             log("## > " + str(command), True)
             exec_script_command_in_docker(command, job_env_to_run, container_id)
-        stop_container(container_id)
+        stop_container(container_id)                                    # Kill container
 
-    else:
+    else: # for local execution
         for command in script_to_run:
             log("## > " + str(command), True)
             exec_script_command(command, job_env_to_run)
@@ -238,6 +252,9 @@ if __name__ == '__main__':
         sys.exit(manage_hook(get_root_dir()))       # start
 
     elif SELECTOR == "exec":                        # Execution of the .simple-ci.yml script
+
+        # Prepare artifacts folder
+        create_artifacts_folder(get_root_dir())
 
         data = get_pipeline_data(get_root_dir())    # Collect data from script
 
