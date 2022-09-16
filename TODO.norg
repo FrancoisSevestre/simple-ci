@@ -13,7 +13,7 @@
 -- Container isn't running
 -- bad syntax (no jobs, no script)
 - [ ] Check use of subprocess.getoutput vs os.system
-- [!] Add specify pipeline file + create test pipelines (every possible case)
+- [x] Add specify pipeline file + create test pipelines (every possible case)
 - [x] refactor script execution
 - [ ] move functions to module file
 - [ ] Assert functions are pure.
@@ -27,6 +27,7 @@
 - [ ] Run jobs concomitantly
 - [ ] Config file: cmd interpreter, docker ,etc
 - [ ] secrets
+- [ ] create help for each arg
 
 * DONE
 - basics:

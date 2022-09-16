@@ -1,32 +1,4 @@
 ---
-stages:
-  - welcome
-  - test
-
-welcome:
-  jobs:
-    - sayhello
-
-sayhello:
-  script:
-    - echo "Hello world"
-
-test:
-  jobs:
-    - linting
-    - pytest
-
-linting:
-  script:
-    - pylint simpleci
-
-pytest:
-  inside_docker:
-    image: ubuntu
-    path: /
-  script:
-    - cat /etc/os-release
-    - ls
-    - mkdir IAmANewFolder
-    - ls | grep Folder
-    - cat .simple-ci.yml
+script:
+  - simpleci exec -f pipelines/.simple-ci.yml
+  - simpleci exec --file pipelines/.simpler-ci.yml

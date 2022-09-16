@@ -108,13 +108,13 @@ job3:
             file.write(example_file_data)
         print("The .simple-ci.yml file has been created. Check it, try it and customize it!")
 
-def get_pipeline_data(git_root_dir):
+def get_pipeline_data(git_root_dir, ci_script=".simple-ci.yml"):
     """ Get the pipeline data from file.
     Returns:
         A dict.
     """
     yaml_data = False
-    with open(git_root_dir+"/.simple-ci.yml", 'r', encoding="utf-8") as file:
+    with open(git_root_dir+"/"+ci_script, 'r', encoding="utf-8") as file:
         yaml_data = yaml.load(file, Loader=yaml.Loader)
     return yaml_data
     # TODO check if file exists (.simple-ci.yml or .simple-ci/*)
@@ -222,6 +222,10 @@ if __name__ == '__main__':
     args = sys.argv
     script_name = args.pop(0)                       # Remove script name from the list
     SELECTOR = args[0]
+    if len(args) > 1:
+        OPTIONS = args[1:]
+    else:
+        OPTIONS = [False]
 
     if SELECTOR == "start":
         sys.exit(manage_hook(get_root_dir()))       # Create the hook file
@@ -234,10 +238,20 @@ if __name__ == '__main__':
         sys.exit(manage_hook(get_root_dir()))       # start
 
     elif SELECTOR == "exec":                        # Execution of the .simple-ci.yml script
-        log("\n>>>>>>\nStarting the pipeline execution\n", True)
 
-        ### Global scope ###
         data = get_pipeline_data(get_root_dir())    # Collect data from script
+
+        # check suplemental args
+        for opt in OPTIONS:
+            if OPTIONS[0]: # If first arg is not false
+                if OPTIONS[0] in ("--file", "-f"):
+                    path_to_script = args[2]
+                    data = get_pipeline_data(get_root_dir(), path_to_script)    # Collect data from script
+            else:
+                pass
+
+        log("\n>>>>>>\nStarting the pipeline execution\n", True)
+        ### Global scope ###
 
         # Variables
         if 'variables' in data:                     # if user declared variables in global scope
