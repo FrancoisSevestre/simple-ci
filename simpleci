@@ -260,6 +260,7 @@ def run_script(script_parameters_to_run):
                 stop_container(container_id)                                    # Kill container
                 end_of_pipeline()
 
+
         # Artifacts
         if job_artifacts_to_run:
             paths = job_artifacts_to_run['paths']
@@ -471,8 +472,12 @@ if __name__ == '__main__':
 
     elif SELECTOR == "clean":
         artifacts_dir = get_root_dir() + "-artifacts"
+<<<<<<< simpleci
         if confirm:=input(f"Delete {artifacts_dir} directory? (y/N)\n>") \
                 in ('y', 'yes', 'Y', 'YES'):
+=======
+        if confirm:=input(f"Delete {artifacts_dir} directory? (y/N)\n>") in ('y', 'yes', 'Y', 'YES'):
+>>>>>>> simpleci
             os.system(f"rm -rf {artifacts_dir}")
 
     elif SELECTOR == "test":
