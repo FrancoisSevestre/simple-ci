@@ -29,10 +29,10 @@
 - [ ] Config file: cmd interpreter, docker ,etc
 - [ ] secrets
 - [_] create help for each arg
-- [-] Mesure execution time
+- [x] Mesure execution time
 - [x] Create "clean" command
 - [x] Update wiki
-- [ ] Update README
+- [x] Update README
 - [x] Add precisions to wiki (use bash and sh in docker)
 
 * DONE
