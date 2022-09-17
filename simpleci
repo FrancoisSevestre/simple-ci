@@ -301,77 +301,117 @@ if __name__ == '__main__':
 
     elif SELECTOR == "exec":                        # Execution of the .simple-ci.yml script
 
-        data = get_pipeline_data(get_root_dir())    # Collect data from script
-
         # check suplemental args
         if OPTIONS[0] in ("--file", "-f"):
             path_to_script = OPTIONS[1]
             data = get_pipeline_data(get_root_dir(), str(path_to_script)) # Collect data from script
         else:
-            pass
+            data = get_pipeline_data(get_root_dir())    # Collect data from script
 
         log("\n>>>>>>\nStarting the pipeline execution\n", "green")
         ### Global scope ###
 
-        # Variables
-        if 'variables' in data:                     # if user declared variables in global scope
-            global_env = data['variables']
-        else:
-            global_env = {}
+        try:
+            # Variables
+            if 'variables' in data:                     # if user declared variables in global scope
+                global_env = data['variables']
+            else:
+                global_env = {}
 
-        # Inside docker                             # if user declared a docker (global scope)
-        if 'inside_docker' in data:
-            global_docker = data['inside_docker']
-        else:
-            global_docker = {}
+            # Inside docker                             # if user declared a docker (global scope)
+            if 'inside_docker' in data:
+                global_docker = data['inside_docker']
+            else:
+                global_docker = {}
 
-        # Artifacts
-        if 'artifacts' in data:
-            global_artifacts = data['artifacts']
-        else:
-            global_artifacts = {}
+            # Artifacts
+            if 'artifacts' in data:
+                global_artifacts = data['artifacts']
+            else:
+                global_artifacts = {}
 
-        # stages
-        if 'stages' in data:                        # if user declared stages in global scope
-            for stage in data['stages']:
-                stage_name = str(stage)
-                log("###### Stage \'" + stage_name + "\' ######\n", "green")
+            # stages
+            if 'stages' in data:                        # if user declared stages in global scope
+                for stage in data['stages']:
+                    stage_name = str(stage)
+                    log("###### Stage \'" + stage_name + "\' ######\n", "green")
 
-                ### Stage scope ###
-                stage = data[stage]                 # get data from stage
+                    ### Stage scope ###
+                    stage = data[stage]                 # get data from stage
 
-                # variables
-                if 'variables' in stage:            # if user declared variables in the stage scope
-                    stage_env = global_env | stage['variables'] # merge dicts with overwrite
-                else:
-                    stage_env = global_env
+                    # variables
+                    if 'variables' in stage:            # if user declared variables in the stage scope
+                        stage_env = global_env | stage['variables'] # merge dicts with overwrite
+                    else:
+                        stage_env = global_env
 
-                # Inside docker
-                if 'inside_docker' in stage:        # if user declared variables in the stage scope
-                    stage_docker = global_docker | stage['inside_docker']# merge dicts + overwrite
-                else:
-                    stage_docker = global_docker
+                    # Inside docker
+                    if 'inside_docker' in stage:        # if user declared variables in the stage scope
+                        stage_docker = global_docker | stage['inside_docker']# merge dicts + overwrite
+                    else:
+                        stage_docker = global_docker
 
-                # Jobs
-                if 'jobs' in stage:                 # Check if user declared jobs in this stage
-                    for job in stage['jobs']:
+                    # Jobs
+                    if 'jobs' in stage:                 # Check if user declared jobs in this stage
+                        for job in stage['jobs']:
+                            job_name = str(job)
+                            log("#### Job \'" + job_name + "\' ####", "green")
+
+                            ### Job scope ###
+                            job = data[job]             # get data from job
+
+                            # variables
+                            if 'variables' in job:      # if user declared variables in the job scope
+                                job_env = stage_env | job['variables']
+                            else:
+                                job_env = stage_env
+
+                            # Inside docker
+                            if 'inside_docker' in job:  # if user declared variables in the job scope
+                                job_docker = stage_docker | job['inside_docker']
+                            else:
+                                job_docker = stage_docker
+
+                            # Artifacts
+                            if 'artifacts' in job:
+                                job_artifacts = job['artifacts']
+                            else:
+                                job_artifacts = {}
+
+                            # Script
+                            if 'script' in job:         # Check if user defined script in this job
+                                job_script = job['script']
+                                script_parameters = [job_script, job_env, job_docker, \
+                                        job_artifacts, get_root_dir()]
+                                run_script(script_parameters)
+                            else:
+                                log(f"No script found for the job \"{job_name}\".", "red")
+                                end_of_pipeline()
+                    else:
+                        log(f"No jobs found fo the stage \"{stage_name}\".", "red")
+                        end_of_pipeline()
+
+            # Jobs
+            else:
+                if 'jobs' in data:                      # if user declared jobs in global scope
+                    for job in data['jobs']:
                         job_name = str(job)
                         log("#### Job \'" + job_name + "\' ####", "green")
 
                         ### Job scope ###
-                        job = data[job]             # get data from job
+                        job = data[job]
 
-                        # variables
-                        if 'variables' in job:      # if user declared variables in the job scope
-                            job_env = stage_env | job['variables']
+                        # variables                     # if user declared variables in the job scope
+                        if 'variables' in job:
+                            job_env = global_env | job['variables']
                         else:
-                            job_env = stage_env
+                            job_env = global_env
 
-                        # Inside docker
+                        # Inside docker                 # if user declared a docker option (job scope)
                         if 'inside_docker' in job:  # if user declared variables in the job scope
-                            job_docker = stage_docker | job['inside_docker']
+                            job_docker = global_docker | job['inside_docker']
                         else:
-                            job_docker = stage_docker
+                            job_docker = global_docker
 
                         # Artifacts
                         if 'artifacts' in job:
@@ -388,58 +428,20 @@ if __name__ == '__main__':
                         else:
                             log(f"No script found for the job \"{job_name}\".", "red")
                             end_of_pipeline()
+
+            # Script
                 else:
-                    log(f"No jobs found fo the stage \"{stage_name}\".", "red")
-                    end_of_pipeline()
-
-        # Jobs
-        else:
-            if 'jobs' in data:                      # if user declared jobs in global scope
-                for job in data['jobs']:
-                    job_name = str(job)
-                    log("#### Job \'" + job_name + "\' ####", "green")
-
-                    ### Job scope ###
-                    job = data[job]
-
-                    # variables                     # if user declared variables in the job scope
-                    if 'variables' in job:
-                        job_env = global_env | job['variables']
-                    else:
-                        job_env = global_env
-
-                    # Inside docker                 # if user declared a docker option (job scope)
-                    if 'inside_docker' in job:  # if user declared variables in the job scope
-                        job_docker = global_docker | job['inside_docker']
-                    else:
-                        job_docker = global_docker
-
-                    # Artifacts
-                    if 'artifacts' in job:
-                        job_artifacts = job['artifacts']
-                    else:
-                        job_artifacts = {}
-
-                    # Script
-                    if 'script' in job:         # Check if user defined script in this job
-                        job_script = job['script']
-                        script_parameters = [job_script, job_env, job_docker, \
-                                job_artifacts, get_root_dir()]
+                    if 'script' in data:         # Check if user defined script in this job
+                        global_script = data['script']
+                        script_parameters = [global_script, global_env, global_docker, \
+                                global_artifacts, get_root_dir()]
                         run_script(script_parameters)
                     else:
-                        log(f"No script found for the job \"{job_name}\".", "red")
+                        log(f"No script found.", "red")
                         end_of_pipeline()
-
-        # Script
-            else:
-                if 'script' in data:         # Check if user defined script in this job
-                    global_script = data['script']
-                    script_parameters = [global_script, global_env, global_docker, \
-                            global_artifacts, get_root_dir()]
-                    run_script(script_parameters)
-                else:
-                    log(f"No script found.", "red")
-                    end_of_pipeline()
+        except TypeError:
+            log("Failed to read pipeline script. Please check the syntax.", "red")
+            end_of_pipeline()
 
         log("<<<<<\nEnd of the pipeline", "green")
 
