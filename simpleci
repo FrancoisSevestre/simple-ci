@@ -40,21 +40,21 @@ def manage_hook(git_root_dir, present=True):
     """
 
     # Git hook script
-    post_commit_hook = """
+    pre_commit_hook = """
     #!/bin/env bash
 
     simpleci exec
     """
     # manage hook
     if present:                                             # Create the hook file
-        with open(git_root_dir+"/.git/hooks/post-commit", 'w', encoding="utf-8") as file:
-            file.write(post_commit_hook)
-        os.chmod(git_root_dir+"/.git/hooks/post-commit", 0o755)
+        with open(git_root_dir+"/.git/hooks/pre-commit", 'w', encoding="utf-8") as file:
+            file.write(pre_commit_hook)
+        os.chmod(git_root_dir+"/.git/hooks/pre-commit", 0o755)
         print("Git hook created.                                 \
-            \nIt will execute the pipeline after the next commit.\
+            \nIt will execute the pipeline before the next commit.\
             \nAlternatively, you can trigger the pipeline with \'simple-ci exec\'")
     else:
-        os.remove(git_root_dir+"/.git/hooks/post-commit")   # Remove the hook file
+        os.remove(git_root_dir+"/.git/hooks/pre-commit")   # Remove the hook file
     return True
 
 def create_example_file(git_root_dir):

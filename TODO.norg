@@ -1,14 +1,13 @@
 * TODO
-- [ ] Change hook from post to pre
+- [x] Change hook from post to pre
 - [ ] Create a pip package
 - [ ] move functions to module file
 - [ ] Include packaging in pipeline
 - [!] Get success status of every command
 -- errors written in tmp file + check if empty?
-- [ ] Add precisions to wiki (use bash and sh in docker)
 - [!] Check file existence in start delete and init
 - [ ] Implement cron
-- [!] Create Exceptions and raise errors
+- [-] Create Exceptions and raise errors
 -- file doesn't exist
 -- Command returned error
 -- Container isn't running
@@ -24,14 +23,17 @@
 - [ ] Conditionnals
 - [ ] Assert functions are pure.
 - [ ] Include unit tests
-- [ ] Write a proper pipeline
+- [-] Write a proper pipeline
 - [ ] Format simple-ci.log
 - [ ] Find other keywords
 - [ ] Run jobs concomitantly
 - [ ] Config file: cmd interpreter, docker ,etc
 - [ ] secrets
-- [ ] create help for each arg
+- [-] create help for each arg
 - [ ] Mesure execution time
+- [-] Create "clean" command
+- [x] Update wiki
+- [x] Add precisions to wiki (use bash and sh in docker)
 
 * DONE
 - basics:
