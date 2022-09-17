@@ -278,6 +278,9 @@ def run_script(script_parameters_to_run):
         os.chdir(current_dir)
 
 def end_of_pipeline():
+    """
+    Display a message when pipeline failed and exits with error.
+    """
     log("Pipeline failed.", "red")
     sys.exit(1)
 
@@ -335,41 +338,42 @@ if __name__ == '__main__':
             # stages
             if 'stages' in data:                        # if user declared stages in global scope
                 for stage in data['stages']:
-                    stage_name = str(stage)
-                    log("###### Stage \'" + stage_name + "\' ######\n", "green")
+                    STAGE_NAME = str(stage)
+                    log("###### Stage \'" + STAGE_NAME + "\' ######\n", "green")
 
                     ### Stage scope ###
                     stage = data[stage]                 # get data from stage
 
                     # variables
-                    if 'variables' in stage:            # if user declared variables in the stage scope
+                    if 'variables' in stage:        # if user declared variables in the stage scope
                         stage_env = global_env | stage['variables'] # merge dicts with overwrite
                     else:
                         stage_env = global_env
 
                     # Inside docker
-                    if 'inside_docker' in stage:        # if user declared variables in the stage scope
-                        stage_docker = global_docker | stage['inside_docker']# merge dicts + overwrite
+                    if 'inside_docker' in stage:    # if user declared variables in the stage scope
+                        # merge dicts + overwrite
+                        stage_docker = global_docker | stage['inside_docker']
                     else:
                         stage_docker = global_docker
 
                     # Jobs
                     if 'jobs' in stage:                 # Check if user declared jobs in this stage
                         for job in stage['jobs']:
-                            job_name = str(job)
-                            log("#### Job \'" + job_name + "\' ####", "green")
+                            JOB_NAME = str(job)
+                            log("#### Job \'" + JOB_NAME + "\' ####", "green")
 
                             ### Job scope ###
                             job = data[job]             # get data from job
 
                             # variables
-                            if 'variables' in job:      # if user declared variables in the job scope
+                            if 'variables' in job:  # if user declared variables in the job scope
                                 job_env = stage_env | job['variables']
                             else:
                                 job_env = stage_env
 
                             # Inside docker
-                            if 'inside_docker' in job:  # if user declared variables in the job scope
+                            if 'inside_docker' in job: # if user declared variables in the job scope
                                 job_docker = stage_docker | job['inside_docker']
                             else:
                                 job_docker = stage_docker
@@ -387,29 +391,29 @@ if __name__ == '__main__':
                                         job_artifacts, get_root_dir()]
                                 run_script(script_parameters)
                             else:
-                                log(f"No script found for the job \"{job_name}\".", "red")
+                                log(f"No script found for the job \"{JOB_NAME}\".", "red")
                                 end_of_pipeline()
                     else:
-                        log(f"No jobs found fo the stage \"{stage_name}\".", "red")
+                        log(f"No jobs found fo the stage \"{STAGE_NAME}\".", "red")
                         end_of_pipeline()
 
             # Jobs
             else:
                 if 'jobs' in data:                      # if user declared jobs in global scope
                     for job in data['jobs']:
-                        job_name = str(job)
-                        log("#### Job \'" + job_name + "\' ####", "green")
+                        JOB_NAME = str(job)
+                        log("#### Job \'" + JOB_NAME + "\' ####", "green")
 
                         ### Job scope ###
                         job = data[job]
 
-                        # variables                     # if user declared variables in the job scope
+                        # variables                 # if user declared variables in the job scope
                         if 'variables' in job:
                             job_env = global_env | job['variables']
                         else:
                             job_env = global_env
 
-                        # Inside docker                 # if user declared a docker option (job scope)
+                        # Inside docker             # if user declared a docker option (job scope)
                         if 'inside_docker' in job:  # if user declared variables in the job scope
                             job_docker = global_docker | job['inside_docker']
                         else:
@@ -428,7 +432,7 @@ if __name__ == '__main__':
                                     job_artifacts, get_root_dir()]
                             run_script(script_parameters)
                         else:
-                            log(f"No script found for the job \"{job_name}\".", "red")
+                            log(f"No script found for the job \"{JOB_NAME}\".", "red")
                             end_of_pipeline()
 
             # Script
@@ -439,7 +443,7 @@ if __name__ == '__main__':
                                 global_artifacts, get_root_dir()]
                         run_script(script_parameters)
                     else:
-                        log(f"No script found.", "red")
+                        log("No script found.", "red")
                         end_of_pipeline()
 
         except TypeError:
@@ -451,6 +455,11 @@ if __name__ == '__main__':
     elif SELECTOR == "cron":
         # TODO Create cron job
         pass
+
+    elif SELECTOR == "clean":
+        artifacts_dir = get_root_dir() + "-artifacts"
+        if confirm:=input(f"Delete {artifacts_dir} directory? (y/N)\n>") in ('y', 'yes', 'Y', 'YES'):
+            os.system(f"rm -rf {artifacts_dir}")
 
     elif SELECTOR == "test":
         # For dev purpose only

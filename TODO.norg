@@ -31,7 +31,7 @@
 - [ ] secrets
 - [_] create help for each arg
 - [ ] Mesure execution time
-- [-] Create "clean" command
+- [x] Create "clean" command
 - [x] Update wiki
 - [x] Add precisions to wiki (use bash and sh in docker)
 
