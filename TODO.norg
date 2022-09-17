@@ -7,7 +7,7 @@
 -- errors written in tmp file + check if empty?
 - [!] Check file existence in start delete and init
 - [ ] Implement cron
-- [-] Create Exceptions and raise errors
+- [x] Create Exceptions and raise errors
 -- file doesn't exist
 -- Command returned error
 -- Container isn't running

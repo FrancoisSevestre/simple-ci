@@ -114,11 +114,14 @@ def get_pipeline_data(git_root_dir, ci_script=".simple-ci.yml"):
     Returns:
         A dict.
     """
-    yaml_data = False
-    with open(git_root_dir+"/"+ci_script, 'r', encoding="utf-8") as file:
-        yaml_data = yaml.load(file, Loader=yaml.Loader)
-    return yaml_data
-    # TODO check if file exists (.simple-ci.yml or .simple-ci/*)
+    try:
+        yaml_data = False
+        with open(git_root_dir+"/"+ci_script, 'r', encoding="utf-8") as file:
+            yaml_data = yaml.load(file, Loader=yaml.Loader)
+        return yaml_data
+    except FileNotFoundError:
+        log("Pipeline file not found", "red")
+        sys.exit(1)
 
 def log(line, color=""):
     """ Prints line and saves it to simple.log file
@@ -126,7 +129,6 @@ def log(line, color=""):
         line (str)
         color (bool)
     """
-    # TODO insert timestamp
     with open("simple.log", 'a', encoding="utf-8") as log_file:
         log_file.write(line+"\n")
     if color == "green":
@@ -439,6 +441,7 @@ if __name__ == '__main__':
                     else:
                         log(f"No script found.", "red")
                         end_of_pipeline()
+
         except TypeError:
             log("Failed to read pipeline script. Please check the syntax.", "red")
             end_of_pipeline()
