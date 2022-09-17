@@ -142,14 +142,14 @@ def command_execution(command_to_execute):
     """
     Executes the given command, manage logs and exit pipeline if necessary
     """
-    res = run(command_to_execute, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    res = run(command_to_execute, shell=True, stdout=PIPE, stderr=PIPE, \
+            universal_newlines=True, check=False)
     log(res.stdout)
     if res.returncode != 0:
         log(f"return code: {res.returncode}", "red")
         log(res.stdout, "red")
         return False
-    else:
-        return True
+    return True
 
 def exec_script_command(script_command, env):
     """  Execute a command with a given env
@@ -256,9 +256,7 @@ def run_script(script_parameters_to_run):
         copy_files_to_docker(container_id, job_docker_to_run['path'])   # copy files to docker
         for command in script_to_run:                                   # Exec script in docker
             log("## > " + str(command), "green")
-            if exec_script_command_in_docker(command, job_env_to_run, container_id):
-                pass
-            else:
+            if not exec_script_command_in_docker(command, job_env_to_run, container_id):
                 stop_container(container_id)                                    # Kill container
                 end_of_pipeline()
 
@@ -268,8 +266,6 @@ def run_script(script_parameters_to_run):
             for file in paths:
                 os.system(f"docker cp {container_id}:{file} {current_artifacts_dir}")
                 log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.")
-        else:
-            pass
 
         stop_container(container_id)                                    # Kill container
 
@@ -282,9 +278,7 @@ def run_script(script_parameters_to_run):
         os.chdir(tmp_artifacts_dir )
         for command in script_to_run:
             log("## > " + str(command), "green")
-            if exec_script_command(command, job_env_to_run):
-                pass
-            else:
+            if not exec_script_command(command, job_env_to_run):
                 end_of_pipeline()
 
         # Artifacts

@@ -11,7 +11,7 @@
 -- Command returned error
 -- Container isn't running
 -- bad syntax (no jobs, no script)
-- [ ] Check use of subprocess.getoutput vs os.system
+- [x] Check use of subprocess.getoutput vs os.system (subprocess.run)
 - [x] Add specify pipeline file + create test pipelines (every possible case)
 - [x] refactor script execution
 - [x] Artifacts folder
