@@ -376,7 +376,7 @@ if __name__ == '__main__':
                     # Inside docker
                     if 'inside_docker' in stage:    # if user declared variables in the stage scope
                         # merge dicts + overwrite
-                        stage_docker = global_docker | stage['inside_docker']
+                        stage_docker = stage['inside_docker']
                     else:
                         stage_docker = global_docker
 
@@ -398,7 +398,7 @@ if __name__ == '__main__':
 
                             # Inside docker
                             if 'inside_docker' in job: # if user declared variables in the job scope
-                                job_docker = stage_docker | job['inside_docker']
+                                job_docker = job['inside_docker']
                             else:
                                 job_docker = stage_docker
 
@@ -448,7 +448,7 @@ if __name__ == '__main__':
 
                         # Inside docker             # if user declared a docker option (job scope)
                         if 'inside_docker' in job:  # if user declared variables in the job scope
-                            job_docker = global_docker | job['inside_docker']
+                            job_docker = job['inside_docker']
                         else:
                             job_docker = global_docker
 
