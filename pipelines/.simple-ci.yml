@@ -13,23 +13,20 @@ sayhello:
 
 test:
   jobs:
-    - linting
     - pytest
+    - linting
 
 linting:
-  artifacts:
-    paths:
-      - testfile
   script:
     - pylint simpleci
-    - touch testfile
 
 pytest:
   inside_docker:
     image: ubuntu
     path: /
+  artifacts:
+    paths:
+      - release_file
   script:
-    - cat /etc/os-release
-    - ls
-    - mkdir IAmANewFolder
-    - ls | grep Folder
+    - cp /etc/os-release release_file
+    - uname -r

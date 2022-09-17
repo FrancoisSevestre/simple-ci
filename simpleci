@@ -183,7 +183,6 @@ def exec_script_command_in_docker(script_command, env, cont_id):
             script_command +      \
             "\'"                                                # Assemble final command
     full_command = "docker exec " + cont_id + " " + passed_command+ " \n"
-    print(full_command)
     log(str(subprocess.getoutput(full_command)))
 
 def copy_files_to_docker(cont_id, path): # TODO Function impure
@@ -210,8 +209,9 @@ def create_artifacts_folder(git_root_dir):
         os.mkdir(artifacts_dir_to_be_created)       # Create the common artifacts folder
         print("Artifacts folder created.")
     except FileExistsError:
-        print("Artifacts folder already exists.")
-    run_dir = os.path.join(artifacts_dir_to_be_created, datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+        pass
+    run_dir = os.path.join(artifacts_dir_to_be_created,\
+            datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
     try:
         os.mkdir(run_dir)             # Create the run folder
     except FileExistsError:
@@ -243,9 +243,13 @@ def run_script(script_parameters_to_run):
             exec_script_command_in_docker(command, job_env_to_run, container_id)
 
         # Artifacts
-        paths = job_artifacts_to_run['paths']
-        for file in paths:
-            os.system(f"docker cp {container_id}:{file} {current_artifacts_dir}")
+        if job_artifacts_to_run:
+            paths = job_artifacts_to_run['paths']
+            for file in paths:
+                os.system(f"docker cp {container_id}:{file} {current_artifacts_dir}")
+                log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.")
+        else:
+            pass
 
         stop_container(container_id)                                    # Kill container
 
@@ -255,20 +259,19 @@ def run_script(script_parameters_to_run):
         os.system(f"shopt -s dotglob && cp -r {git_root_dir} {tmp_artifacts_dir } 2> /dev/null")
                                                                         # Temporairy fix ^
         current_dir = os.getcwd()
-        print(current_dir) # Debug
         os.chdir(tmp_artifacts_dir )
-        print(os.getcwd()) # Debug
         for command in script_to_run:
             log("## > " + str(command), True)
             exec_script_command(command, job_env_to_run)
 
         # Artifacts
-        paths = job_artifacts_to_run['paths']
-        for file in paths:
-            os.system(f"cp -r -t {current_artifacts_dir} {tmp_artifacts_dir}/{file} ")
+        if job_artifacts_to_run:
+            paths = job_artifacts_to_run['paths']
+            for file in paths:
+                os.system(f"cp -r -t {current_artifacts_dir} {tmp_artifacts_dir}/{file} ")
+                log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.")
 
         os.chdir(current_dir)
-        print(current_dir) # Debug
 
 ############## Main ##############
 if __name__ == '__main__':
@@ -297,7 +300,7 @@ if __name__ == '__main__':
         # check suplemental args
         if OPTIONS[0] in ("--file", "-f"):
             path_to_script = OPTIONS[1]
-            data = get_pipeline_data(get_root_dir(), str(path_to_script))    # Collect data from script
+            data = get_pipeline_data(get_root_dir(), str(path_to_script)) # Collect data from script
         else:
             pass
 
@@ -342,12 +345,6 @@ if __name__ == '__main__':
                 else:
                     stage_docker = global_docker
 
-                # Artifacts
-                if 'artifacts' in stage:
-                    stage_artifacts = global_artifacts | stage['artifacts']
-                else:
-                    stage_artifacts = global_artifacts
-
                 # Jobs
                 if 'jobs' in stage:                 # Check if user declared jobs in this stage
                     for job in stage['jobs']:
@@ -370,14 +367,15 @@ if __name__ == '__main__':
 
                         # Artifacts
                         if 'artifacts' in job:
-                            job_artifacts = stage_artifacts | job['artifacts']
+                            job_artifacts = job['artifacts']
                         else:
-                            job_artifacts = stage_artifacts
+                            job_artifacts = {}
 
                         # Script
                         if 'script' in job:         # Check if user defined script in this job
                             job_script = job['script']
-                            script_parameters = [job_script, job_env, job_docker, job_artifacts, get_root_dir()]
+                            script_parameters = [job_script, job_env, job_docker, \
+                                    job_artifacts, get_root_dir()]
                             run_script(script_parameters)
                         else:
                             print("No script found for the job") # TODO raise an error
@@ -407,14 +405,15 @@ if __name__ == '__main__':
 
                     # Artifacts
                     if 'artifacts' in job:
-                        job_artifacts = global_artifacts | job['artifacts']
+                        job_artifacts = job['artifacts']
                     else:
-                        job_artifacts = global_artifacts
+                        job_artifacts = {}
 
                     # Script
                     if 'script' in job:         # Check if user defined script in this job
                         job_script = job['script']
-                        script_parameters = [job_script, job_env, job_docker, job_artifacts, get_root_dir()]
+                        script_parameters = [job_script, job_env, job_docker, \
+                                job_artifacts, get_root_dir()]
                         run_script(script_parameters)
                     else:
                         print("No script found for the job") # TODO raise an error
@@ -423,7 +422,8 @@ if __name__ == '__main__':
             else:
                 if 'script' in data:         # Check if user defined script in this job
                     global_script = data['script']
-                    script_parameters = [global_script, global_env, global_docker, global_artifacts, get_root_dir()]
+                    script_parameters = [global_script, global_env, global_docker, \
+                            global_artifacts, get_root_dir()]
                     run_script(script_parameters)
                 else:
                     print("No script found for the job") # TODO raise an error

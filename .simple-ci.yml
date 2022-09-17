@@ -2,3 +2,4 @@
 script:
   - simpleci exec -f pipelines/.simple-ci.yml
   - simpleci exec --file pipelines/.simpler-ci.yml
+  - simpleci exec -f pipelines/test.yml
