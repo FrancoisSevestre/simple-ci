@@ -8,7 +8,7 @@ email: francois.sevestre.35@gmail.com
 ############## Imports   ##############
 import sys
 import os
-import subprocess
+from subprocess import getoutput, PIPE, run
 from datetime import datetime
 import yaml
 
@@ -18,14 +18,14 @@ def get_root_dir():
     Returns:
         An absolute path.
     """
-    return subprocess.getoutput("git rev-parse --show-toplevel")
+    return getoutput("git rev-parse --show-toplevel")
 
 def get_git_branch():
     """ Get the current git branch.
     Returns:
         A string, the name of the branch.
     """
-    return subprocess.getoutput("git branch | grep '*' | awk '{print $2}'")
+    return getoutput("git branch | grep '*' | awk '{print $2}'")
 
 def manage_hook(git_root_dir, present=True):
     """ Creates or remove the hook from the .git/hook/ folder.
@@ -138,6 +138,19 @@ def log(line, color=""):
     else:
         print(line)
 
+def command_execution(command_to_execute):
+    """
+    Executes the given command, manage logs and exit pipeline if necessary
+    """
+    res = run(command_to_execute, shell=True, stdout=PIPE, stderr=PIPE, \
+            universal_newlines=True, check=False)
+    log(res.stdout)
+    if res.returncode != 0:
+        log(f"return code: {res.returncode}", "red")
+        log(res.stdout, "red")
+        return False
+    return True
+
 def exec_script_command(script_command, env):
     """  Execute a command with a given env
     Args:
@@ -156,8 +169,7 @@ def exec_script_command(script_command, env):
             " && " +                \
             script_command +        \
             "\'"                                                # Assemble final command
-
-    log(str(subprocess.getoutput(passed_command)))              # Exec and log
+    return command_execution(passed_command)
 
 def create_container(docker_image):
     """
@@ -165,7 +177,7 @@ def create_container(docker_image):
     Returns:
         container_hash (str)
     """
-    cont = subprocess.getoutput("docker run -td " + docker_image) # Create container
+    cont = getoutput("docker run -td " + docker_image) # Create container
     cont = cont.split(sep='\n')[-1][0:11]
     # os.system("docker container start " + cont + " > /dev/null")          # start container
     return cont
@@ -187,7 +199,7 @@ def exec_script_command_in_docker(script_command, env, cont_id):
             script_command +      \
             "\'"                                                # Assemble final command
     full_command = "docker exec " + cont_id + " " + passed_command+ " \n"
-    log(str(subprocess.getoutput(full_command)))
+    return command_execution(full_command)
 
 def copy_files_to_docker(cont_id, path): # TODO Function impure
     """
@@ -244,7 +256,10 @@ def run_script(script_parameters_to_run):
         copy_files_to_docker(container_id, job_docker_to_run['path'])   # copy files to docker
         for command in script_to_run:                                   # Exec script in docker
             log("## > " + str(command), "green")
-            exec_script_command_in_docker(command, job_env_to_run, container_id)
+            if not exec_script_command_in_docker(command, job_env_to_run, container_id):
+                stop_container(container_id)                                    # Kill container
+                end_of_pipeline()
+
 
         # Artifacts
         if job_artifacts_to_run:
@@ -252,8 +267,6 @@ def run_script(script_parameters_to_run):
             for file in paths:
                 os.system(f"docker cp {container_id}:{file} {current_artifacts_dir}")
                 log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.")
-        else:
-            pass
 
         stop_container(container_id)                                    # Kill container
 
@@ -266,7 +279,8 @@ def run_script(script_parameters_to_run):
         os.chdir(tmp_artifacts_dir )
         for command in script_to_run:
             log("## > " + str(command), "green")
-            exec_script_command(command, job_env_to_run)
+            if not exec_script_command(command, job_env_to_run):
+                end_of_pipeline()
 
         # Artifacts
         if job_artifacts_to_run:
@@ -458,13 +472,17 @@ if __name__ == '__main__':
 
     elif SELECTOR == "clean":
         artifacts_dir = get_root_dir() + "-artifacts"
+<<<<<<< simpleci
+        if confirm:=input(f"Delete {artifacts_dir} directory? (y/N)\n>") \
+                in ('y', 'yes', 'Y', 'YES'):
+=======
         if confirm:=input(f"Delete {artifacts_dir} directory? (y/N)\n>") in ('y', 'yes', 'Y', 'YES'):
+>>>>>>> simpleci
             os.system(f"rm -rf {artifacts_dir}")
 
     elif SELECTOR == "test":
         # For dev purpose only
         pass
-
     else:
         print("Wrong argument")
         sys.exit(1)

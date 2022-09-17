@@ -3,16 +3,15 @@
 - [ ] Create a pip package
 - [ ] move functions to module file
 - [ ] Include packaging in pipeline
-- [!] Get success status of every command
--- errors written in tmp file + check if empty?
-- [!] Check file existence in start delete and init
+- [x] Get success status of every command
+- [ ] Check file existence in start delete and init
 - [ ] Implement cron
 - [x] Create Exceptions and raise errors
 -- file doesn't exist
 -- Command returned error
 -- Container isn't running
 -- bad syntax (no jobs, no script)
-- [ ] Check use of subprocess.getoutput vs os.system
+- [x] Check use of subprocess.getoutput vs os.system (subprocess.run)
 - [x] Add specify pipeline file + create test pipelines (every possible case)
 - [x] refactor script execution
 - [x] Artifacts folder
@@ -33,6 +32,7 @@
 - [ ] Mesure execution time
 - [x] Create "clean" command
 - [x] Update wiki
+- [ ] Update README
 - [x] Add precisions to wiki (use bash and sh in docker)
 
 * DONE
