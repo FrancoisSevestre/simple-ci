@@ -29,7 +29,7 @@
 - [ ] Config file: cmd interpreter, docker ,etc
 - [ ] secrets
 - [_] create help for each arg
-- [ ] Mesure execution time
+- [-] Mesure execution time
 - [x] Create "clean" command
 - [x] Update wiki
 - [ ] Update README
