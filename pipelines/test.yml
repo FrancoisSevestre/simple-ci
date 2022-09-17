@@ -1,0 +1,12 @@
+artifacts:
+  paths:
+    - file1
+    - test/file2
+inside_docker:
+  image: ubuntu
+  path: /
+script:
+  - cp /etc/os-release file1
+  - mkdir test
+  - touch test/file2
+

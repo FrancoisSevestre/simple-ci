@@ -1,6 +1,7 @@
 * TODO
 - [ ] Change hook from post to pre
 - [ ] Create a pip package
+- [ ] move functions to module file
 - [ ] Include packaging in pipeline
 - [!] Get success status of every command
 -- errors written in tmp file + check if empty?
@@ -15,12 +16,13 @@
 - [ ] Check use of subprocess.getoutput vs os.system
 - [x] Add specify pipeline file + create test pipelines (every possible case)
 - [x] refactor script execution
-- [ ] move functions to module file
-- [ ] Assert functions are pure.
 - [x] Artifacts folder
-- [ ] Artifacts as keyword
 - [x] Sandbox folder (change work dir)
+- [x] Change sandbox folder to tmp
+- [x] Artifacts as keyword
+- [x] tuple for scrit params
 - [ ] Conditionnals
+- [ ] Assert functions are pure.
 - [ ] Include unit tests
 - [ ] Write a proper pipeline
 - [ ] Format simple-ci.log

@@ -17,8 +17,12 @@ test:
     - pytest
 
 linting:
+  artifacts:
+    paths:
+      - testfile
   script:
     - pylint simpleci
+    - touch testfile
 
 pytest:
   inside_docker:
