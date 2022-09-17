@@ -1,7 +1,7 @@
 * TODO
-- [ ] Create a pip package
-- [ ] move functions to module file
-- [ ] Include packaging in pipeline
+- [-] Create a pip package
+- [-] move functions to module file
+- [-] Include packaging in pipeline
 - [ ] Write a proper pipeline
 - [ ] Format simple-ci.log
 - [ ] Implement cron
