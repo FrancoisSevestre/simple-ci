@@ -120,7 +120,7 @@ def get_pipeline_data(git_root_dir, ci_script=".simple-ci.yml"):
     return yaml_data
     # TODO check if file exists (.simple-ci.yml or .simple-ci/*)
 
-def log(line, color=False):
+def log(line, color=""):
     """ Prints line and saves it to simple.log file
     Args:
         line (str)
@@ -129,8 +129,10 @@ def log(line, color=False):
     # TODO insert timestamp
     with open("simple.log", 'a', encoding="utf-8") as log_file:
         log_file.write(line+"\n")
-    if color:
+    if color == "green":
         print("\033[32m"+line+"\033[0m")
+    elif color == "red":
+        print("\033[31m"+line+"\033[0m")
     else:
         print(line)
 
@@ -239,7 +241,7 @@ def run_script(script_parameters_to_run):
         log(f"Container \'{container_id}\' as been created.")
         copy_files_to_docker(container_id, job_docker_to_run['path'])   # copy files to docker
         for command in script_to_run:                                   # Exec script in docker
-            log("## > " + str(command), True)
+            log("## > " + str(command), "green")
             exec_script_command_in_docker(command, job_env_to_run, container_id)
 
         # Artifacts
@@ -261,7 +263,7 @@ def run_script(script_parameters_to_run):
         current_dir = os.getcwd()
         os.chdir(tmp_artifacts_dir )
         for command in script_to_run:
-            log("## > " + str(command), True)
+            log("## > " + str(command), "green")
             exec_script_command(command, job_env_to_run)
 
         # Artifacts
@@ -272,6 +274,10 @@ def run_script(script_parameters_to_run):
                 log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.")
 
         os.chdir(current_dir)
+
+def end_of_pipeline():
+    log("Pipeline failed.", "red")
+    sys.exit(1)
 
 ############## Main ##############
 if __name__ == '__main__':
@@ -304,7 +310,7 @@ if __name__ == '__main__':
         else:
             pass
 
-        log("\n>>>>>>\nStarting the pipeline execution\n", True)
+        log("\n>>>>>>\nStarting the pipeline execution\n", "green")
         ### Global scope ###
 
         # Variables
@@ -328,7 +334,8 @@ if __name__ == '__main__':
         # stages
         if 'stages' in data:                        # if user declared stages in global scope
             for stage in data['stages']:
-                log("###### Stage \'" + str(stage) + "\' ######\n", True)
+                stage_name = str(stage)
+                log("###### Stage \'" + stage_name + "\' ######\n", "green")
 
                 ### Stage scope ###
                 stage = data[stage]                 # get data from stage
@@ -348,7 +355,8 @@ if __name__ == '__main__':
                 # Jobs
                 if 'jobs' in stage:                 # Check if user declared jobs in this stage
                     for job in stage['jobs']:
-                        log("#### Job \'" + str(job) + "\' ####", True)
+                        job_name = str(job)
+                        log("#### Job \'" + job_name + "\' ####", "green")
 
                         ### Job scope ###
                         job = data[job]             # get data from job
@@ -378,15 +386,18 @@ if __name__ == '__main__':
                                     job_artifacts, get_root_dir()]
                             run_script(script_parameters)
                         else:
-                            print("No script found for the job") # TODO raise an error
+                            log(f"No script found for the job \"{job_name}\".", "red")
+                            end_of_pipeline()
                 else:
-                    print("No jobs found fo this stage.") # TODO raise an error
+                    log(f"No jobs found fo the stage \"{stage_name}\".", "red")
+                    end_of_pipeline()
 
         # Jobs
         else:
             if 'jobs' in data:                      # if user declared jobs in global scope
                 for job in data['jobs']:
-                    log("#### Job \'" + str(job) + "\' ####", True)
+                    job_name = str(job)
+                    log("#### Job \'" + job_name + "\' ####", "green")
 
                     ### Job scope ###
                     job = data[job]
@@ -416,7 +427,8 @@ if __name__ == '__main__':
                                 job_artifacts, get_root_dir()]
                         run_script(script_parameters)
                     else:
-                        print("No script found for the job") # TODO raise an error
+                        log(f"No script found for the job \"{job_name}\".", "red")
+                        end_of_pipeline()
 
         # Script
             else:
@@ -426,9 +438,10 @@ if __name__ == '__main__':
                             global_artifacts, get_root_dir()]
                     run_script(script_parameters)
                 else:
-                    print("No script found for the job") # TODO raise an error
+                    log(f"No script found.", "red")
+                    end_of_pipeline()
 
-        log("<<<<<\nEnd of the pipeline", True)
+        log("<<<<<\nEnd of the pipeline", "green")
 
     elif SELECTOR == "cron":
         # TODO Create cron job

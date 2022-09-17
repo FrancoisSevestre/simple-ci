@@ -23,13 +23,13 @@
 - [ ] Conditionnals
 - [ ] Assert functions are pure.
 - [ ] Include unit tests
-- [-] Write a proper pipeline
+- [ ] Write a proper pipeline
 - [ ] Format simple-ci.log
 - [ ] Find other keywords
 - [ ] Run jobs concomitantly
 - [ ] Config file: cmd interpreter, docker ,etc
 - [ ] secrets
-- [-] create help for each arg
+- [_] create help for each arg
 - [ ] Mesure execution time
 - [-] Create "clean" command
 - [x] Update wiki
