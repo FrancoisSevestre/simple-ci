@@ -21,6 +21,7 @@ Check the [Wiki](https://gitlab.com/FrancoisSevestre/simple-ci/-/wikis/home) for
 - `simpleci stop`: Delete git hook (The pipeline will not be executed).
 - `simpleci init`: Create the git hook and the .simple-ci.yml file. 
 - `simpleci exec`: Executes the pipeline.
+- `simpleci clean`: Remove all artifacts files.
 - `simpleci cron [time specification]`: Create a cron job.
 
 ## Simple example of .simple-ci.yml script
@@ -47,13 +48,19 @@ stage2:
     - job3
 
 job1:
+  variables:
+    fie_name: "new_file"
+  artifacts:
+    paths:
+      - new_file
   script:
     - echo "This is the first job."
+    - touch $file_name
 
 job2:
   inside_docker:
-    image: ruby:2.7
-    path: /tmp/
+    image: ubuntu
+    path: /
   script:
     - echo "This is the $MYVAR job."
 
