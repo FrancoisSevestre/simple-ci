@@ -8,6 +8,7 @@ email: francois.sevestre.35@gmail.com
 ############## Imports   ##############
 import sys
 import os
+import time
 from subprocess import getoutput, PIPE, run
 from datetime import datetime
 import yaml
@@ -135,6 +136,8 @@ def log(line, color=""):
         print("\033[32m"+line+"\033[0m")
     elif color == "red":
         print("\033[31m"+line+"\033[0m")
+    elif color == "blue":
+        print("\033[36m"+line+"\033[0m")
     else:
         print(line)
 
@@ -205,7 +208,7 @@ def copy_files_to_docker(cont_id, path): # TODO Function impure
     """
     Copies the current git folder to container at the given path.
     """
-    log(f"Files will be copied to the container {cont_id} at \'{path}\'")
+    log(f"Files will be copied to the container {cont_id} at \'{path}\'", "blue")
     # os.system(f"cp -r . {get_root_dir()}_simple-ci/" )
     os.system(f"docker cp . {cont_id}:{path}")
 
@@ -243,6 +246,8 @@ def run_script(script_parameters_to_run):
     job_artifacts_to_run = script_parameters_to_run[3]
     git_root_dir = script_parameters_to_run[4]
 
+    start_script_time = time.time()
+
     # Prepare artifacts folder
     if job_artifacts_to_run:
         current_artifacts_dir = create_artifacts_folder(git_root_dir)
@@ -250,9 +255,9 @@ def run_script(script_parameters_to_run):
         current_artifacts_dir = create_artifacts_folder("/tmp/simpleci")
 
     if job_docker_to_run != {}: # For inside_docker execution
-        log(f"A \'{job_docker_to_run['image']}\' container is required.")
+        log(f"A \'{job_docker_to_run['image']}\' container is required.", "blue")
         container_id = create_container(job_docker_to_run['image'])     # Creating container
-        log(f"Container \'{container_id}\' as been created.")
+        log(f"Container \'{container_id}\' as been created.", "blue")
         copy_files_to_docker(container_id, job_docker_to_run['path'])   # copy files to docker
         for command in script_to_run:                                   # Exec script in docker
             log("## > " + str(command), "green")
@@ -266,7 +271,7 @@ def run_script(script_parameters_to_run):
             paths = job_artifacts_to_run['paths']
             for file in paths:
                 os.system(f"docker cp {container_id}:{file} {current_artifacts_dir}")
-                log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.")
+                log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.", "blue")
 
         stop_container(container_id)                                    # Kill container
 
@@ -287,9 +292,11 @@ def run_script(script_parameters_to_run):
             paths = job_artifacts_to_run['paths']
             for file in paths:
                 os.system(f"cp -r -t {current_artifacts_dir} {tmp_artifacts_dir}/{file} ")
-                log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.")
+                log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.", "blue")
 
         os.chdir(current_dir)
+    stop_script_time = time.time()
+    return stop_script_time - start_script_time
 
 def end_of_pipeline():
     """
@@ -319,6 +326,7 @@ if __name__ == '__main__':
         sys.exit(manage_hook(get_root_dir()))       # start
 
     elif SELECTOR == "exec":                        # Execution of the .simple-ci.yml script
+        time_summary = "Execution times:\n----------------\n"
 
         # check suplemental args
         if OPTIONS[0] in ("--file", "-f"):
@@ -353,6 +361,7 @@ if __name__ == '__main__':
             if 'stages' in data:                        # if user declared stages in global scope
                 for stage in data['stages']:
                     STAGE_NAME = str(stage)
+                    stage_start_time = time.time()
                     log("###### Stage \'" + STAGE_NAME + "\' ######\n", "green")
 
                     ### Stage scope ###
@@ -373,6 +382,7 @@ if __name__ == '__main__':
 
                     # Jobs
                     if 'jobs' in stage:                 # Check if user declared jobs in this stage
+                        job_time_summary = ""
                         for job in stage['jobs']:
                             JOB_NAME = str(job)
                             log("#### Job \'" + JOB_NAME + "\' ####", "green")
@@ -403,17 +413,26 @@ if __name__ == '__main__':
                                 job_script = job['script']
                                 script_parameters = [job_script, job_env, job_docker, \
                                         job_artifacts, get_root_dir()]
-                                run_script(script_parameters)
+                                exec_time = run_script(script_parameters)
+                                job_time_summary += f"|-->\t{JOB_NAME} ({float(f'{exec_time:.2f}')}s)\n"
+                                # log(f"Execution time: {float(f'{exec_time:.2f}')} secondes", "blue")
+
                             else:
                                 log(f"No script found for the job \"{JOB_NAME}\".", "red")
                                 end_of_pipeline()
+
+                        stage_stop_time = time.time()
+                        stage_exec_time = stage_stop_time - stage_start_time
+                        time_summary += f"{STAGE_NAME} ({float(f'{stage_exec_time:.2f}')}s)\n"
+                        time_summary += job_time_summary
+
                     else:
                         log(f"No jobs found fo the stage \"{STAGE_NAME}\".", "red")
                         end_of_pipeline()
-
             # Jobs
             else:
                 if 'jobs' in data:                      # if user declared jobs in global scope
+                    job_time_summary = ""
                     for job in data['jobs']:
                         JOB_NAME = str(job)
                         log("#### Job \'" + JOB_NAME + "\' ####", "green")
@@ -444,10 +463,14 @@ if __name__ == '__main__':
                             job_script = job['script']
                             script_parameters = [job_script, job_env, job_docker, \
                                     job_artifacts, get_root_dir()]
-                            run_script(script_parameters)
+                            exec_time = run_script(script_parameters)
+                            job_time_summary += f"{JOB_NAME} ({float(f'{exec_time:.2f}')}s)\n"
+
                         else:
                             log(f"No script found for the job \"{JOB_NAME}\".", "red")
                             end_of_pipeline()
+
+                        time_summary += job_time_summary
 
             # Script
                 else:
@@ -455,7 +478,8 @@ if __name__ == '__main__':
                         global_script = data['script']
                         script_parameters = [global_script, global_env, global_docker, \
                                 global_artifacts, get_root_dir()]
-                        run_script(script_parameters)
+                        exec_time = run_script(script_parameters)
+                        time_summary += f"Script ({float(f'{exec_time:.2f}')}s)\n"
                     else:
                         log("No script found.", "red")
                         end_of_pipeline()
@@ -464,6 +488,7 @@ if __name__ == '__main__':
             log("Failed to read pipeline script. Please check the syntax.", "red")
             end_of_pipeline()
 
+        log(time_summary, "blue")
         log("<<<<<\nEnd of the pipeline", "green")
 
     elif SELECTOR == "cron":
