@@ -11,6 +11,7 @@ setup(
     author='François Sevestre',
     author_email='francois.sevestre.35@gmail.com',
     license='GPLv3',
+    long_description_content_type="text/markdown",
     long_description=readme,
     packages=['simple_cicd'],
     install_requires=['pyyaml'],
