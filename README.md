@@ -71,12 +71,11 @@ job3:
 You will find the complete syntax documentation on the [Wiki](https://gitlab.com/FrancoisSevestre/simple-ci/-/wikis/Pipeline-syntax)
 
 ## Installation
-There is no packaged version yet. The `simpleci` script must be accessible by the hook so you need move it to a folder in your $PATH.
+Simple-CI is packaged in pypi.org under the name "simple-cicd" and can be installed with pip.
 ``` bash
-# Clone the repo
-git clone https://gitlab.com/FrancoisSevestre/simple-ci.git
-# Make the script executable as a command
-mv simple-ci/simpleci <SomeFolderInYourEnvPath> # Use 'echo $PATH' to find one.
+pip install simple-cicd
+# or 
+python3 -m pip install simple-cicd
 ```
 
 ### Dependencies

@@ -278,10 +278,10 @@ def run_script(script_parameters_to_run):
     else: # for local execution
 
         tmp_artifacts_dir = "/tmp/" + os.path.basename(current_artifacts_dir)
-        os.system(f"shopt -s dotglob && cp -r {git_root_dir} {tmp_artifacts_dir } 2> /dev/null")
-                                                                        # Temporairy fix ^
+        os.system(f"cp -r {git_root_dir} {tmp_artifacts_dir} 2> /dev/null")
+
         current_dir = os.getcwd()
-        os.chdir(tmp_artifacts_dir )
+        os.chdir(tmp_artifacts_dir)
         for command in script_to_run:
             log("## > " + str(command), "green")
             if not exec_script_command(command, job_env_to_run):
@@ -306,7 +306,7 @@ def end_of_pipeline():
     sys.exit(1)
 
 ############## Main ##############
-if __name__ == '__main__':
+def main():
     args = sys.argv
     script_name = args.pop(0)                       # Remove script name from the list
     SELECTOR = args[0]
@@ -376,7 +376,7 @@ if __name__ == '__main__':
                     # Inside docker
                     if 'inside_docker' in stage:    # if user declared variables in the stage scope
                         # merge dicts + overwrite
-                        stage_docker = global_docker | stage['inside_docker']
+                        stage_docker = stage['inside_docker']
                     else:
                         stage_docker = global_docker
 
@@ -398,7 +398,7 @@ if __name__ == '__main__':
 
                             # Inside docker
                             if 'inside_docker' in job: # if user declared variables in the job scope
-                                job_docker = stage_docker | job['inside_docker']
+                                job_docker = job['inside_docker']
                             else:
                                 job_docker = stage_docker
 
@@ -448,7 +448,7 @@ if __name__ == '__main__':
 
                         # Inside docker             # if user declared a docker option (job scope)
                         if 'inside_docker' in job:  # if user declared variables in the job scope
-                            job_docker = global_docker | job['inside_docker']
+                            job_docker = job['inside_docker']
                         else:
                             job_docker = global_docker
 
@@ -507,3 +507,7 @@ if __name__ == '__main__':
     else:
         print("Wrong argument")
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
