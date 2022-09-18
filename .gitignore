@@ -1,1 +1,4 @@
 simple.log
+build
+dist
+simple_cicd.egg-info

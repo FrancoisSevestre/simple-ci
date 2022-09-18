@@ -1,5 +1,5 @@
 * TODO
-- [-] Create a pip package
+- [x] Create a pip package
 - [-] move functions to module file
 - [-] Include packaging in pipeline
 - [ ] Write a proper pipeline
