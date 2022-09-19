@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open('README.md', 'r') as file:
     readme = file.read()
@@ -13,7 +13,8 @@ setup(
     license='GPLv3',
     long_description_content_type="text/markdown",
     long_description=readme,
-    packages=['simple_cicd'],
+    packages=find_packages(),
+    # py_modules=['simple_cicd.lib'],
     install_requires=['pyyaml'],
 
     classifiers=[

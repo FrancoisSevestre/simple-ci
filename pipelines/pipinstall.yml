@@ -1,0 +1,16 @@
+inside_docker:
+  image: archlinux
+  path: /
+
+artifacts:
+  paths:
+    - dist/simple_cicd-0.0.8.tar.gz
+
+script:
+  - pacman -Sy git python-pip --noconfirm
+  - git init
+  - pip install .
+  - simpleci test
+  - pip install setuptools
+  - python setup.py sdist
+
