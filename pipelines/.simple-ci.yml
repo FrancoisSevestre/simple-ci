@@ -1,7 +1,4 @@
 ---
-inside_docker:
-  image: debian
-  path: /
 stages:
   - welcome
   - test
@@ -15,17 +12,14 @@ sayhello:
     - echo "Hello world"
 
 test:
-  inside_docker:
-    image: archlinux
-    path: /
   jobs:
     - pytest
     - linting
 
 linting:
   script:
-    - cat /etc/os-release
-    - pylint simpleci || true
+    - pwd
+    - pylint simple_cicd/ || true
 
 pytest:
   inside_docker:
