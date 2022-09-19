@@ -10,35 +10,38 @@ import sys
 import os
 import time
 
-from simple_cicd.ci_files import *
-from simple_cicd.functions import *
+from simple_cicd.functions import manage_hook, get_root_dir, create_example_file, \
+        get_pipeline_data, log, run_script, end_of_pipeline
 ############## Main ##############
 
 def main():
+    """
+    Main function, call with simpleci command.
+    """
     args = sys.argv
     args.pop(0)                       # Remove script name from the list
-    SELECTOR = args[0]
+    selector = args[0]
     if len(args) > 1:
-        OPTIONS = args[1:]
+        options = args[1:]
     else:
-        OPTIONS = [False]
+        options = [False]
 
-    if SELECTOR == "start":
+    if selector == "start":
         sys.exit(manage_hook(get_root_dir()))       # Create the hook file
 
-    elif SELECTOR == "stop":
+    elif selector == "stop":
         sys.exit(manage_hook(get_root_dir(), False))# Delete the hook file
 
-    elif SELECTOR == "init":
+    elif selector == "init":
         create_example_file(get_root_dir())         # Create the .simple-ci.yml file
         sys.exit(manage_hook(get_root_dir()))       # start
 
-    elif SELECTOR == "exec":                        # Execution of the .simple-ci.yml script
+    elif selector == "exec":                        # Execution of the .simple-ci.yml script
         time_summary = "Execution times:\n----------------\n"
 
         # check suplemental args
-        if OPTIONS[0] in ("--file", "-f"):
-            path_to_script = OPTIONS[1]
+        if options[0] in ("--file", "-f"):
+            path_to_script = options[1]
             data = get_pipeline_data(get_root_dir(), str(path_to_script)) # Collect data from script
         else:
             data = get_pipeline_data(get_root_dir())    # Collect data from script
@@ -68,9 +71,9 @@ def main():
             # stages
             if 'stages' in data:                        # if user declared stages in global scope
                 for stage in data['stages']:
-                    STAGE_NAME = str(stage)
+                    stage_name = str(stage)
                     stage_start_time = time.time()
-                    log("###### Stage \'" + STAGE_NAME + "\' ######\n", "green")
+                    log("###### Stage \'" + stage_name + "\' ######\n", "green")
 
                     ### Stage scope ###
                     stage = data[stage]                 # get data from stage
@@ -92,8 +95,8 @@ def main():
                     if 'jobs' in stage:                 # Check if user declared jobs in this stage
                         job_time_summary = ""
                         for job in stage['jobs']:
-                            JOB_NAME = str(job)
-                            log("#### Job \'" + JOB_NAME + "\' ####", "green")
+                            job_name = str(job)
+                            log("#### Job \'" + job_name + "\' ####", "green")
 
                             ### Job scope ###
                             job = data[job]             # get data from job
@@ -122,28 +125,28 @@ def main():
                                 script_parameters = [job_script, job_env, job_docker, \
                                         job_artifacts, get_root_dir()]
                                 exec_time = run_script(script_parameters)
-                                job_time_summary += f"|-->\t{JOB_NAME} ({float(f'{exec_time:.2f}')}s)\n"
-                                # log(f"Execution time: {float(f'{exec_time:.2f}')} secondes", "blue")
+                                job_time_summary += \
+                                        f"|-->\t{job_name} ({float(f'{exec_time:.2f}')}s)\n"
 
                             else:
-                                log(f"No script found for the job \"{JOB_NAME}\".", "red")
+                                log(f"No script found for the job \"{job_name}\".", "red")
                                 end_of_pipeline()
 
                         stage_stop_time = time.time()
                         stage_exec_time = stage_stop_time - stage_start_time
-                        time_summary += f"{STAGE_NAME} ({float(f'{stage_exec_time:.2f}')}s)\n"
+                        time_summary += f"{stage_name} ({float(f'{stage_exec_time:.2f}')}s)\n"
                         time_summary += job_time_summary
 
                     else:
-                        log(f"No jobs found fo the stage \"{STAGE_NAME}\".", "red")
+                        log(f"No jobs found fo the stage \"{stage_name}\".", "red")
                         end_of_pipeline()
             # Jobs
             else:
                 if 'jobs' in data:                      # if user declared jobs in global scope
                     job_time_summary = ""
                     for job in data['jobs']:
-                        JOB_NAME = str(job)
-                        log("#### Job \'" + JOB_NAME + "\' ####", "green")
+                        job_name = str(job)
+                        log("#### Job \'" + job_name + "\' ####", "green")
 
                         ### Job scope ###
                         job = data[job]
@@ -172,10 +175,10 @@ def main():
                             script_parameters = [job_script, job_env, job_docker, \
                                     job_artifacts, get_root_dir()]
                             exec_time = run_script(script_parameters)
-                            job_time_summary += f"{JOB_NAME} ({float(f'{exec_time:.2f}')}s)\n"
+                            job_time_summary += f"{job_name} ({float(f'{exec_time:.2f}')}s)\n"
 
                         else:
-                            log(f"No script found for the job \"{JOB_NAME}\".", "red")
+                            log(f"No script found for the job \"{job_name}\".", "red")
                             end_of_pipeline()
 
                         time_summary += job_time_summary
@@ -199,17 +202,17 @@ def main():
         log(time_summary, "blue")
         log("<<<<<\nEnd of the pipeline", "green")
 
-    elif SELECTOR == "cron":
+    elif selector == "cron":
         # TODO Create cron job
         pass
 
-    elif SELECTOR == "clean":
+    elif selector == "clean":
         artifacts_dir = get_root_dir() + "-artifacts"
         if input(f"Delete {artifacts_dir} directory? (y/N)\n>") \
                 in ('y', 'yes', 'Y', 'YES'):
             os.system(f"rm -rf {artifacts_dir}")
 
-    elif SELECTOR == "test":
+    elif selector == "test":
         # For dev purpose only
         print("Test of simpleci install succeded!")
 

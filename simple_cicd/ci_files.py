@@ -1,8 +1,12 @@
 """
+SIMPLE CI: Dead simple CI/CD pipeline executor.
+author: François Sevestre
+email: francois.sevestre.35@gmail.com
+
 This module containes multilines string variables used as template file creation.
 """
 
-example_file_data = \
+EXAMPLE_FILE_DATA = \
 """---
 variables:
   GLOBAL_VAR: "last"
@@ -41,7 +45,7 @@ job3:
     - echo "This is the $GLOBAL_VAR job, that will be executed after stage1 is completed."
 """
 
-pre_commit_hook = \
+PRE_COMMIT_HOOK = \
 """
 #!/bin/env bash
 

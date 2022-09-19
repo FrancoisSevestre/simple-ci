@@ -1,4 +1,8 @@
 """
+SIMPLE CI: Dead simple CI/CD pipeline executor.
+author: François Sevestre
+email: francois.sevestre.35@gmail.com
+
 This modules contains functions.
 """
 ###########################################
@@ -10,7 +14,7 @@ from datetime import datetime
 
 import yaml
 
-from simple_cicd.ci_files import *
+from simple_cicd.ci_files import EXAMPLE_FILE_DATA, PRE_COMMIT_HOOK
 ###########################################
 
 def get_root_dir():
@@ -42,7 +46,7 @@ def manage_hook(git_root_dir, present=True):
     # manage hook
     if present:                                             # Create the hook file
         with open(git_root_dir+"/.git/hooks/pre-commit", 'w', encoding="utf-8") as file:
-            file.write(pre_commit_hook)
+            file.write(PRE_COMMIT_HOOK)
         os.chmod(git_root_dir+"/.git/hooks/pre-commit", 0o755)
         print("Git hook created.                                 \
             \nIt will execute the pipeline before the next commit.\
@@ -61,7 +65,7 @@ def create_example_file(git_root_dir):
     else:
         # create file
         with open(git_root_dir+"/.simple-ci.yml", 'w', encoding="utf-8") as file:
-            file.write(example_file_data)
+            file.write(EXAMPLE_FILE_DATA)
         print("The .simple-ci.yml file has been created. Check it, try it and customize it!")
 
 def get_pipeline_data(git_root_dir, ci_script=".simple-ci.yml"):
@@ -258,5 +262,3 @@ def end_of_pipeline():
     """
     log("Pipeline failed.", "red")
     sys.exit(1)
-
-

@@ -19,7 +19,7 @@ test:
 linting:
   script:
     - pwd
-    - pylint simple_cicd/simple_cicd.py || true
+    - pylint simple_cicd/ || true
 
 pytest:
   inside_docker:
