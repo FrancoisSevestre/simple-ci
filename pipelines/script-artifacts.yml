@@ -1,0 +1,5 @@
+artifacts:
+  paths:
+    - os-info
+script:
+  - uname -a > os-info

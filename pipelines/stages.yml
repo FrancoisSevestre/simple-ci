@@ -1,0 +1,25 @@
+---
+stages:
+  - test
+  - build
+
+test:
+  jobs:
+    - say hello
+    - get infos
+
+build:
+  jobs:
+    - say goodbye
+
+say hello:
+  script:
+    - echo "hello world"
+
+get infos:
+  script:
+    - cat /etc/os-release
+
+say goodbye:
+  script:
+    - echo "Goodbye world"

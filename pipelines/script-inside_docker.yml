@@ -1,0 +1,6 @@
+inside_docker:
+  image: archlinux
+  path: /
+script:
+  - echo "hello world"
+  - uname -a

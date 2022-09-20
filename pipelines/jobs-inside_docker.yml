@@ -1,0 +1,19 @@
+---
+inside_docker:
+  image: archlinux
+  path: /
+
+jobs:
+  - get infos1
+  - get infos2
+
+get infos1:
+  script:
+    - cat /etc/os-release
+
+get infos2:
+  inside_docker:
+    image: ubuntu
+    path: /
+  script:
+    - cat /etc/os-release

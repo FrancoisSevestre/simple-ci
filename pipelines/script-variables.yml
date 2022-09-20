@@ -1,0 +1,4 @@
+variables:
+  WHO: "world"
+script:
+  - echo "hello $WHO"

@@ -51,3 +51,16 @@ PRE_COMMIT_HOOK = \
 
 simpleci exec
 """
+
+PRE_COMMIT_HOOK_SUDO = \
+"""#!/bin/bash
+
+simpleci exec --sudo
+"""
+
+DOCKER_ERROR_MESSAGE= \
+"""User can't access Docker services.
+Check if docker is installed and enabled.
+If Docker requires sudo priviledges on your system,
+use \"simpleci start --sudo\" and \"simpleci exec --sudo \".
+"""
