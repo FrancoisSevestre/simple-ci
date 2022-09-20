@@ -95,6 +95,7 @@ def main():
                     if 'jobs' in stage:                 # Check if user declared jobs in this stage
                         job_time_summary = ""
                         for job in stage['jobs']:
+                            job_time_summary = ""
                             job_name = str(job)
                             log("#### Job \'" + job_name + "\' ####", "green")
 
@@ -143,8 +144,8 @@ def main():
             # Jobs
             else:
                 if 'jobs' in data:                      # if user declared jobs in global scope
-                    job_time_summary = ""
                     for job in data['jobs']:
+                        job_time_summary = ""
                         job_name = str(job)
                         log("#### Job \'" + job_name + "\' ####", "green")
 
@@ -176,7 +177,6 @@ def main():
                                     job_artifacts, get_root_dir()]
                             exec_time = run_script(script_parameters)
                             job_time_summary += f"{job_name} ({float(f'{exec_time:.2f}')}s)\n"
-
                         else:
                             log(f"No script found for the job \"{job_name}\".", "red")
                             end_of_pipeline()
