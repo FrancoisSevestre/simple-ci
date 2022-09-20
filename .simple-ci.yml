@@ -1,15 +1,33 @@
 ---
-script:
-  - simpleci exec -f pipelines/script.yml
-  - simpleci exec -f pipelines/jobs.yml
-  - simpleci exec -f pipelines/stages.yml
-  - simpleci exec -f pipelines/script-variables.yml
-  - simpleci exec -f pipelines/jobs-variables.yml
-  - simpleci exec -f pipelines/stages-variables.yml
-  - simpleci exec -f pipelines/script-inside_docker.yml
-  - simpleci exec -f pipelines/jobs-inside_docker.yml
-  - simpleci exec -f pipelines/stages-inside_docker.yml
-  - simpleci exec -f pipelines/script-artifacts.yml
-  - simpleci exec -f pipelines/jobs-artifacts.yml
- 
-  - simpleci exec -f pipelines/pipinstall.yml
+jobs:
+  # - global test
+  - test docker priviledges
+
+# global test:
+#   artifacts:
+#     paths:
+#       - lint_errors
+#   script:
+#     - simpleci exec -f pipelines/script.yml
+#     - simpleci exec -f pipelines/jobs.yml
+#     - simpleci exec -f pipelines/stages.yml
+#     - simpleci exec -f pipelines/script-variables.yml
+#     - simpleci exec -f pipelines/jobs-variables.yml
+#     - simpleci exec -f pipelines/stages-variables.yml
+#     - simpleci exec -f pipelines/script-inside_docker.yml
+#     - simpleci exec -f pipelines/jobs-inside_docker.yml
+#     - simpleci exec -f pipelines/stages-inside_docker.yml
+#     - simpleci exec -f pipelines/script-artifacts.yml
+#     - simpleci exec -f pipelines/jobs-artifacts.yml
+#    
+#     - simpleci exec -f pipelines/pipinstall.yml
+#
+#     - pylint simple_cicd/ | tee lint_errors
+
+test docker priviledges:
+  inside_docker:
+    image: archlinux
+    path: /
+  script:
+    - echo "salut"
+

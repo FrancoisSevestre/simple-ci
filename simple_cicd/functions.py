@@ -9,12 +9,16 @@ This modules contains functions.
 import sys
 import os
 import time
-from subprocess import getoutput, PIPE, run
+from subprocess import getoutput, PIPE, STDOUT, run
 from datetime import datetime
 
 import yaml
 
-from simple_cicd.ci_files import EXAMPLE_FILE_DATA, PRE_COMMIT_HOOK
+from simple_cicd.ci_files import \
+        EXAMPLE_FILE_DATA,       \
+        PRE_COMMIT_HOOK,         \
+        PRE_COMMIT_HOOK_SUDO,    \
+        DOCKER_ERROR_MESSAGE
 ###########################################
 
 def get_root_dir():
@@ -31,7 +35,7 @@ def get_git_branch():
     """
     return getoutput("git branch | grep '*' | awk '{print $2}'")
 
-def manage_hook(git_root_dir, present=True):
+def manage_hook(git_root_dir, present=True, sudo=False):
     """ Creates or remove the hook from the .git/hook/ folder.
 
     Args:
@@ -45,8 +49,13 @@ def manage_hook(git_root_dir, present=True):
 
     # manage hook
     if present:                                             # Create the hook file
-        with open(git_root_dir+"/.git/hooks/pre-commit", 'w', encoding="utf-8") as file:
-            file.write(PRE_COMMIT_HOOK)
+        if sudo:
+            with open(git_root_dir+"/.git/hooks/pre-commit", 'w', encoding="utf-8") as file:
+                file.write(PRE_COMMIT_HOOK_SUDO)
+        else:
+            with open(git_root_dir+"/.git/hooks/pre-commit", 'w', encoding="utf-8") as file:
+                file.write(PRE_COMMIT_HOOK)
+
         os.chmod(git_root_dir+"/.git/hooks/pre-commit", 0o755)
         print("Git hook created.                                 \
             \nIt will execute the pipeline before the next commit.\
@@ -88,8 +97,8 @@ def log(line, color=""):
         line (str)
         color (bool)
     """
-    with open("simple.log", 'a', encoding="utf-8") as log_file:
-        log_file.write(line+"\n")
+    # with open("simple.log", 'a', encoding="utf-8") as log_file:
+    #     log_file.write(line+"\n") # TODO decomment
     if color == "green":
         print("\033[32m"+line+"\033[0m")
     elif color == "red":
@@ -103,16 +112,22 @@ def command_execution(command_to_execute):
     """
     Executes the given command, manage logs and exit pipeline if necessary
     """
-    res = run(command_to_execute, shell=True, stdout=PIPE, stderr=PIPE, \
-            universal_newlines=True, check=False)
+    res = run(command_to_execute,    \
+            shell=True,              \
+            stdout=PIPE,             \
+            stderr=STDOUT,           \
+            universal_newlines=True, \
+            check=False)
     log(res.stdout)
     if res.returncode != 0:
-        log(f"return code: {res.returncode}", "red")
-        log(res.stdout, "red")
+        log("<<<<<<<<<<<", "red")
+        log(f"Error code: {res.returncode}", "red")
+        log("Output: \n~~~~~~~~~~\n"+res.stdout+"~~~~~~~~~~", "red")
         return False
     return True
 
-def exec_script_command(script_command, env):
+
+def exec_script_command(script_command, env, sudo_prefix=""):
     """  Execute a command with a given env
     Args:
         command (str)
@@ -125,25 +140,26 @@ def exec_script_command(script_command, env):
                 " && " +    \
                 var_key + "=\"" + str(env[var_key]) + "\""
 
-    passed_command = "bash -c \'" + \
+    passed_command = sudo_prefix +  \
+            "bash -c \'" +          \
             env_cmd +               \
             " && " +                \
             script_command +        \
             "\'"                                                # Assemble final command
     return command_execution(passed_command)
 
-def create_container(docker_image):
+def create_container(docker_image, sudo_prefix=""):
     """
     Creates a docker container of the specified image.
     Returns:
         container_hash (str)
     """
-    cont = getoutput("docker run -td " + docker_image) # Create container
+    cont = getoutput(sudo_prefix+"docker run -td " + docker_image) # Create container
     cont = cont.split(sep='\n')[-1][0:11]
     # os.system("docker container start " + cont + " > /dev/null")          # start container
     return cont
 
-def exec_script_command_in_docker(script_command, env, cont_id):
+def exec_script_command_in_docker(script_command, env, cont_id, sudo_prefix=""):
     """
     Execute a command with the given env in the given container.
     """
@@ -159,22 +175,22 @@ def exec_script_command_in_docker(script_command, env, cont_id):
             " && " +              \
             script_command +      \
             "\'"                                                # Assemble final command
-    full_command = "docker exec " + cont_id + " " + passed_command+ " \n"
+    full_command = sudo_prefix + "docker exec " + cont_id + " " + passed_command+ " \n"
     return command_execution(full_command)
 
-def copy_files_to_docker(cont_id, path): # TODO Function impure
+def copy_files_to_docker(cont_id, path, sudo_prefix=""): # TODO Function impure
     """
     Copies the current git folder to container at the given path.
     """
     log(f"Files will be copied to the container {cont_id} at \'{path}\'", "blue")
     # os.system(f"cp -r . {get_root_dir()}_simple-ci/" )
-    os.system(f"docker cp . {cont_id}:{path}")
+    os.system(f"{sudo_prefix} docker cp . {cont_id}:{path}")
 
-def stop_container(cont_id):
+def stop_container(cont_id, sudo_prefix=""):
     """
     Stops a docker container.
     """
-    os.system("docker rm -f " + cont_id + " > /dev/null")
+    os.system(sudo_prefix + "docker rm -f " + cont_id + " > /dev/null")
 
 def create_artifacts_folder(git_root_dir):
     """
@@ -203,6 +219,7 @@ def run_script(script_parameters_to_run):
     job_docker_to_run = script_parameters_to_run[2]
     job_artifacts_to_run = script_parameters_to_run[3]
     git_root_dir = script_parameters_to_run[4]
+    sudo_prefix = script_parameters_to_run[5]
 
     start_script_time = time.time()
 
@@ -214,13 +231,23 @@ def run_script(script_parameters_to_run):
 
     if job_docker_to_run != {}: # For inside_docker execution
         log(f"A \'{job_docker_to_run['image']}\' container is required.", "blue")
-        container_id = create_container(job_docker_to_run['image'])     # Creating container
+
+        # try docker ps to see if user can access docker
+        docker_ok = command_execution(sudo_prefix+"docker ps > /dev/null")
+        if not docker_ok:
+            log(DOCKER_ERROR_MESSAGE, "red")
+            end_of_pipeline()
+
+        container_id = create_container(job_docker_to_run['image'], \
+                sudo_prefix=sudo_prefix) # Creating container
         log(f"Container \'{container_id}\' as been created.", "blue")
-        copy_files_to_docker(container_id, job_docker_to_run['path'])   # copy files to docker
+        copy_files_to_docker(container_id, job_docker_to_run['path'], \
+                sudo_prefix=sudo_prefix)   # copy files to docker
         for command in script_to_run:                                   # Exec script in docker
             log("## > " + str(command), "green")
-            if not exec_script_command_in_docker(command, job_env_to_run, container_id):
-                stop_container(container_id)                                    # Kill container
+            if not exec_script_command_in_docker \
+            (command, job_env_to_run, container_id, sudo_prefix=sudo_prefix):
+                stop_container(container_id, sudo_prefix=sudo_prefix)           # Kill container
                 end_of_pipeline()
 
 
@@ -228,28 +255,29 @@ def run_script(script_parameters_to_run):
         if job_artifacts_to_run:
             paths = job_artifacts_to_run['paths']
             for file in paths:
-                os.system(f"docker cp {container_id}:{file} {current_artifacts_dir}")
+                os.system(f"{sudo_prefix} docker cp {container_id}:{file} {current_artifacts_dir}")
                 log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.", "blue")
 
-        stop_container(container_id)                                    # Kill container
+        stop_container(container_id, sudo_prefix=sudo_prefix)                                    # Kill container
 
     else: # for local execution
 
         tmp_artifacts_dir = "/tmp/" + os.path.basename(current_artifacts_dir)
-        os.system(f"cp -r {git_root_dir} {tmp_artifacts_dir} 2> /dev/null")
+        command = f"{sudo_prefix} bash -c \'cp -r {git_root_dir} {tmp_artifacts_dir} \'"
+        os.system(command) # 2> /dev/null
 
         current_dir = os.getcwd()
         os.chdir(tmp_artifacts_dir)
         for command in script_to_run:
             log("## > " + str(command), "green")
-            if not exec_script_command(command, job_env_to_run):
+            if not exec_script_command(command, job_env_to_run, sudo_prefix=sudo_prefix):
                 end_of_pipeline()
 
         # Artifacts
         if job_artifacts_to_run:
             paths = job_artifacts_to_run['paths']
             for file in paths:
-                os.system(f"cp -r -t {current_artifacts_dir} {tmp_artifacts_dir}/{file} ")
+                os.system(f"{sudo_prefix} cp -r -t {current_artifacts_dir} {tmp_artifacts_dir}/{file} ")
                 log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.", "blue")
 
         os.chdir(current_dir)

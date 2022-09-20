@@ -9,10 +9,23 @@ email: francois.sevestre.35@gmail.com
 import sys
 import os
 import time
+from getpass import getpass
+import argparse
 
-from simple_cicd.functions import manage_hook, get_root_dir, create_example_file, \
-        get_pipeline_data, log, run_script, end_of_pipeline
+from simple_cicd.functions import \
+        log,                      \
+        manage_hook,              \
+        create_example_file,      \
+        get_root_dir,             \
+        get_pipeline_data,        \
+        run_script,               \
+        end_of_pipeline
 ############## Main ##############
+
+# Arguments parsing
+# parser = argparse.ArgumentParser(description="Dead simple pipeline executor.")
+# parser.add_argument()
+# args = parser.parse_args()
 
 def main():
     """
@@ -27,7 +40,11 @@ def main():
         options = [False]
 
     if selector == "start":
-        sys.exit(manage_hook(get_root_dir()))       # Create the hook file
+        # check suplemental args
+        if options[0] in ("--sudo", "-S"):
+            sys.exit(manage_hook(get_root_dir(), sudo=True))       # Create the hook file
+        else:
+            sys.exit(manage_hook(get_root_dir()))       # Create the hook file
 
     elif selector == "stop":
         sys.exit(manage_hook(get_root_dir(), False))# Delete the hook file
@@ -38,6 +55,7 @@ def main():
 
     elif selector == "exec":                        # Execution of the .simple-ci.yml script
         time_summary = "Execution times:\n----------------\n"
+        sudo_prefix = ""
 
         # check suplemental args
         if options[0] in ("--file", "-f"):
@@ -45,6 +63,11 @@ def main():
             data = get_pipeline_data(get_root_dir(), str(path_to_script)) # Collect data from script
         else:
             data = get_pipeline_data(get_root_dir())    # Collect data from script
+
+        if options[0] in ("--sudo", "-S"):
+            pswd = getpass()
+            sudo_prefix = f"echo {pswd} | sudo -S "
+            # TODO Pars args the right way
 
         log("\n>>>>>>\nStarting the pipeline execution\n", "green")
         ### Global scope ###
@@ -124,7 +147,7 @@ def main():
                             if 'script' in job:         # Check if user defined script in this job
                                 job_script = job['script']
                                 script_parameters = [job_script, job_env, job_docker, \
-                                        job_artifacts, get_root_dir()]
+                                        job_artifacts, get_root_dir(), sudo_prefix]
                                 exec_time = run_script(script_parameters)
                                 job_time_summary += \
                                         f"|-->\t{job_name} ({float(f'{exec_time:.2f}')}s)\n"
@@ -174,7 +197,7 @@ def main():
                         if 'script' in job:         # Check if user defined script in this job
                             job_script = job['script']
                             script_parameters = [job_script, job_env, job_docker, \
-                                    job_artifacts, get_root_dir()]
+                                    job_artifacts, get_root_dir(), sudo_prefix]
                             exec_time = run_script(script_parameters)
                             job_time_summary += f"{job_name} ({float(f'{exec_time:.2f}')}s)\n"
                         else:
@@ -188,7 +211,7 @@ def main():
                     if 'script' in data:         # Check if user defined script in this job
                         global_script = data['script']
                         script_parameters = [global_script, global_env, global_docker, \
-                                global_artifacts, get_root_dir()]
+                                global_artifacts, get_root_dir(), sudo_prefix]
                         exec_time = run_script(script_parameters)
                         time_summary += f"Script ({float(f'{exec_time:.2f}')}s)\n"
                     else:

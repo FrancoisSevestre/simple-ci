@@ -14,9 +14,11 @@
 - [ ] Check file existence in start delete and init
 - [ ] Run jobs concomitantly
 - [ ] mount columes in docker
+- [ ] parse arguments with argparse
 - FIX:
--- [ ] Not return on errors
+-- [x] Not return on errors
 -- [ ] No error when artifact not found
+-- [x] Raise error if docker is not accessible
 
 * DONE
 - basics:
