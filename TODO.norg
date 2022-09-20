@@ -13,8 +13,8 @@
 - [ ] Find other keywords
 - [ ] Check file existence in start delete and init
 - [ ] Run jobs concomitantly
-- [ ] mount columes in docker
-- [ ] parse arguments with argparse
+- [ ] mount volumes in docker
+- [x] parse arguments with argparse
 - FIX:
 -- [x] Not return on errors
 -- [ ] No error when artifact not found
