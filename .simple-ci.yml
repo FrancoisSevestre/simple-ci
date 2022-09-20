@@ -12,3 +12,4 @@ script:
   - simpleci exec -f pipelines/script-artifacts.yml
   - simpleci exec -f pipelines/jobs-artifacts.yml
  
+  - simpleci exec -f pipelines/pipinstall.yml

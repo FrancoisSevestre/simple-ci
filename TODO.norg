@@ -1,8 +1,8 @@
 * TODO
 - [x] Create a pip package
 - [x] move functions to module file
-- [-] Include packaging in pipeline
-- [ ] Write a proper pipeline
+- [x] Include packaging in pipeline
+- [x] Write a proper pipeline
 - [ ] Format simple-ci.log
 - [ ] Implement cron
 - [ ] Conditionnals
@@ -13,6 +13,10 @@
 - [ ] Find other keywords
 - [ ] Check file existence in start delete and init
 - [ ] Run jobs concomitantly
+- [ ] mount columes in docker
+- FIX:
+-- [ ] Not return on errors
+-- [ ] No error when artifact not found
 
 * DONE
 - basics:
