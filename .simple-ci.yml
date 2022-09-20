@@ -29,5 +29,5 @@ test docker priviledges:
     image: archlinux
     path: /
   script:
-    - echo "salut"
+    - cat /etc/os-release
 

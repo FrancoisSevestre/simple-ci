@@ -53,10 +53,9 @@ simpleci exec
 """
 
 PRE_COMMIT_HOOK_SUDO = \
-"""
-#!/bin/env bash
+"""#!/bin/bash
 
-simpleci exec −S
+simpleci exec --sudo
 """
 
 DOCKER_ERROR_MESSAGE= \

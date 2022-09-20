@@ -23,9 +23,16 @@ from simple_cicd.functions import \
 ############## Main ##############
 
 # Arguments parsing
-# parser = argparse.ArgumentParser(description="Dead simple pipeline executor.")
-# parser.add_argument()
-# args = parser.parse_args()
+parser = argparse.ArgumentParser(description="Dead simple pipeline executor.")
+parser.add_argument("start", help="create the hook")
+parser.add_argument("stop", help="create the hook")
+parser.add_argument("init", help="create the hook")
+parser.add_argument("cron", help="create the hook")
+parser.add_argument("clean", help="create the hook")
+parser.add_argument("test", help="create the hook")
+parser.add_argument("-f","--file", help="create the hook", action="store_true")
+parser.add_argument("-S","--sudo", help="create the hook", action="store_true")
+args = parser.parse_args()
 
 def main():
     """
@@ -64,9 +71,10 @@ def main():
         else:
             data = get_pipeline_data(get_root_dir())    # Collect data from script
 
-        if options[0] in ("--sudo", "-S"):
+        if options[0] in ('--sudo', '-S'):
             pswd = getpass()
             sudo_prefix = f"echo {pswd} | sudo -S "
+
             # TODO Pars args the right way
 
         log("\n>>>>>>\nStarting the pipeline execution\n", "green")
