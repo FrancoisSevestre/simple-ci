@@ -1,0 +1,17 @@
+---
+variables:
+  WHO: "world"
+
+jobs:
+  - say hello
+  - again
+
+say hello:
+  script:
+    - echo "hello $WHO"
+
+again:
+  variables:
+    WHO: "everybody"
+  script:
+    - echo "hello $WHO"

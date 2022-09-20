@@ -1,5 +1,14 @@
 ---
 script:
-  - simpleci exec -f pipelines/.simple-ci.yml
-  - simpleci exec --file pipelines/.simpler-ci.yml
-  - simpleci exec -f pipelines/test.yml
+  - simpleci exec -f pipelines/script.yml
+  - simpleci exec -f pipelines/jobs.yml
+  - simpleci exec -f pipelines/stages.yml
+  - simpleci exec -f pipelines/script-variables.yml
+  - simpleci exec -f pipelines/jobs-variables.yml
+  - simpleci exec -f pipelines/stages-variables.yml
+  - simpleci exec -f pipelines/script-inside_docker.yml
+  - simpleci exec -f pipelines/jobs-inside_docker.yml
+  - simpleci exec -f pipelines/stages-inside_docker.yml
+  - simpleci exec -f pipelines/script-artifacts.yml
+  - simpleci exec -f pipelines/jobs-artifacts.yml
+ 

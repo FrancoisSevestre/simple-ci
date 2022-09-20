@@ -1,0 +1,32 @@
+---
+variables:
+  WHO: "world"
+
+stages:
+  - test
+  - build
+
+test:
+  variables:
+    WHO: "everybody"
+  jobs:
+    - say hello
+    - again
+
+build:
+  jobs:
+    - say goodbye
+
+say hello:
+  variables:
+    WHO: "me"
+  script:
+    - echo "hello $WHO"
+
+again:
+  script:
+    - echo "hello $WHO"
+
+say goodbye:
+  script:
+    - echo "Goodbye $WHO"

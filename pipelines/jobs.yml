@@ -1,0 +1,12 @@
+---
+jobs:
+  - say hello
+  - get infos
+
+say hello:
+  script:
+    - echo "hello world"
+
+get infos:
+  script:
+    - cat /etc/os-release
