@@ -97,8 +97,8 @@ def log(line, color=""):
         line (str)
         color (bool)
     """
-    # with open("simple.log", 'a', encoding="utf-8") as log_file:
-    #     log_file.write(line+"\n") # TODO decomment
+    with open("simple.log", 'a', encoding="utf-8") as log_file:
+        log_file.write(line+"\n") # TODO decomment
     if color == "green":
         print("\033[32m"+line+"\033[0m")
     elif color == "red":
@@ -258,7 +258,7 @@ def run_script(script_parameters_to_run):
                 os.system(f"{sudo_prefix} docker cp {container_id}:{file} {current_artifacts_dir}")
                 log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.", "blue")
 
-        stop_container(container_id, sudo_prefix=sudo_prefix)                                    # Kill container
+        stop_container(container_id, sudo_prefix=sudo_prefix)                   # Kill container
 
     else: # for local execution
 
@@ -277,7 +277,8 @@ def run_script(script_parameters_to_run):
         if job_artifacts_to_run:
             paths = job_artifacts_to_run['paths']
             for file in paths:
-                os.system(f"{sudo_prefix} cp -r -t {current_artifacts_dir} {tmp_artifacts_dir}/{file} ")
+                os.system(f"{sudo_prefix} cp -r -t \
+                        {current_artifacts_dir} {tmp_artifacts_dir}/{file} ")
                 log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.", "blue")
 
         os.chdir(current_dir)
