@@ -13,6 +13,7 @@
 - [ ] mount volumes in docker
 - [x] Rename run-artifacts folders with run number
 - [ ] move simple.log in run folder
+- [ ] Create new hooks (pre-commit, post-commit, pre-merge...)
 - FIX:
 -- [x] No error when artifact not found
 -- [x] Error accessing simple.log in root

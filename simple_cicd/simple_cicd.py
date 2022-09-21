@@ -5,7 +5,7 @@ author: François Sevestre
 email: francois.sevestre.35@gmail.com
 """
 
-############## Imports   ##############
+############## Imports   ###########
 import sys
 import time
 from getpass import getpass
@@ -20,15 +20,14 @@ from simple_cicd.functions import \
         run_script,               \
         end_of_pipeline,          \
         command_execution         \
-############## Main ##############
 
-
+############## Main ###############################################################################
 def main():
     """
     Main function, call with simpleci command.
     """
 
-    # Arguments parsing
+    ### Arguments parsing #########################################################################
     parser = argparse.ArgumentParser(                     \
             prog="simpleci",                              \
             description="Dead simple pipeline executor.", \
@@ -57,25 +56,40 @@ def main():
     # test
     selector.add_parser('test', help="For test purpose.")
     args = parser.parse_args()
+    ###############################################################################################
 
+    ### sub-commands ##############################################################################
     if args.selector == 'start':
-        start_args = parser.parse_args()
-        # check suplemental args
+        start_args = parser.parse_args()                        # Checking for options
         if start_args.sudo:
-            sys.exit(manage_hook(get_root_dir(), sudo=True))       # Create the hook file
+            sys.exit(manage_hook(get_root_dir(), sudo=True))    # Create sudo hook file
         else:
-            sys.exit(manage_hook(get_root_dir()))       # Create the hook file
+            sys.exit(manage_hook(get_root_dir()))               # Create standard hook file
 
     elif args.selector == 'stop':
-        sys.exit(manage_hook(get_root_dir(), False))# Delete the hook file
+        sys.exit(manage_hook(get_root_dir(), False))            # Delete the hook file
 
     elif args.selector == 'init':
-        create_example_file(get_root_dir())         # Create the .simple-ci.yml file
-        sys.exit(manage_hook(get_root_dir()))       # start
+        create_example_file(get_root_dir())                     # Create the .simple-ci.yml file
+        sys.exit(manage_hook(get_root_dir()))                   # start
+
+    elif args.selector == 'cron':
+        pass # TODO Create cron job
+
+    elif args.selector == 'clean':
+        artifacts_dir = get_root_dir() + "-artifacts"
+        if input(f"Delete {artifacts_dir} directory? (y/N)\n>") \
+                in ('y', 'yes', 'Y', 'YES'):
+            sys.exit(command_execution(f"rm -rf {artifacts_dir}"))
+
+    elif args.selector == 'test':
+        # For dev purpose only
+        print("Test of simpleci install succeded!")
 
     elif args.selector == 'exec':
         exec_args = parser.parse_args()
 
+        # Vars initialization
         time_summary = "Execution times:\n----------------\n"
         sudo_prefix = ""
 
@@ -84,7 +98,7 @@ def main():
             path_to_script = exec_args.file
             data = get_pipeline_data(get_root_dir(), str(path_to_script)) # Collect data from script
         else:
-            data = get_pipeline_data(get_root_dir())    # Collect data from script
+            data = get_pipeline_data(get_root_dir())            # Collect data from script
 
         if exec_args.sudo:
             pswd = getpass()
@@ -250,20 +264,6 @@ def main():
 
         log(time_summary, "blue")
         log("<<<<<\nEnd of the pipeline", "green")
-
-    elif args.selector == 'cron':
-        # TODO Create cron job
-        pass
-
-    elif args.selector == 'clean':
-        artifacts_dir = get_root_dir() + "-artifacts"
-        if input(f"Delete {artifacts_dir} directory? (y/N)\n>") \
-                in ('y', 'yes', 'Y', 'YES'):
-            sys.exit(command_execution(f"rm -rf {artifacts_dir}"))
-
-    elif args.selector == 'test':
-        # For dev purpose only
-        print("Test of simpleci install succeded!")
 
 if __name__ == '__main__':
     main()
