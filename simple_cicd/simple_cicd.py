@@ -7,7 +7,6 @@ email: francois.sevestre.35@gmail.com
 
 ############## Imports   ##############
 import sys
-import os
 import time
 from getpass import getpass
 import argparse
@@ -19,7 +18,8 @@ from simple_cicd.functions import \
         get_root_dir,             \
         get_pipeline_data,        \
         run_script,               \
-        end_of_pipeline
+        end_of_pipeline,          \
+        command_execution         \
 ############## Main ##############
 
 
@@ -29,10 +29,11 @@ def main():
     """
 
     # Arguments parsing
-    parser = argparse.ArgumentParser(prog="simpleci", \
-            description="Dead simple pipeline executor.", argument_default="-h")
+    parser = argparse.ArgumentParser(                     \
+            prog="simpleci",                              \
+            description="Dead simple pipeline executor.", \
+            )
     selector = parser.add_subparsers(dest='selector') # Create parsers for subcommands
-
     # start
     start_parser = selector.add_parser('start', help="Create the git hook.")
     #       --sudo
@@ -45,22 +46,16 @@ def main():
     #      --sudo
     exec_parser.add_argument("-S","--sudo", \
             help="Execute the pipeline with sudo priviledges.", action="store_true")
-
     # stop
     selector.add_parser('stop', help="Delete the git hook.")
-
     # init
     selector.add_parser('init', help="Create the git hook and an example .simple-ci.yml file.")
-
     # clean
     selector.add_parser('clean', help="Remove artifacts folder.")
-
     # cron
     selector.add_parser('cron', help="Create a cronjob.")
-
     # test
     selector.add_parser('test', help="For test purpose.")
-
     args = parser.parse_args()
 
     if args.selector == 'start':
@@ -71,17 +66,14 @@ def main():
         else:
             sys.exit(manage_hook(get_root_dir()))       # Create the hook file
 
-    # if args.stop:
-    if args.selector == 'stop':
+    elif args.selector == 'stop':
         sys.exit(manage_hook(get_root_dir(), False))# Delete the hook file
 
-    # if args.init:
-    if args.selector == 'init':
+    elif args.selector == 'init':
         create_example_file(get_root_dir())         # Create the .simple-ci.yml file
         sys.exit(manage_hook(get_root_dir()))       # start
 
-    # if args.exec:                        # Execution of the .simple-ci.yml script
-    if args.selector == 'exec':
+    elif args.selector == 'exec':
         exec_args = parser.parse_args()
 
         time_summary = "Execution times:\n----------------\n"
@@ -254,20 +246,17 @@ def main():
         log(time_summary, "blue")
         log("<<<<<\nEnd of the pipeline", "green")
 
-    # if args.cron:
-    if args.selector == 'cron':
+    elif args.selector == 'cron':
         # TODO Create cron job
         pass
 
-    # if args.clean:
-    if args.selector == 'clean':
+    elif args.selector == 'clean':
         artifacts_dir = get_root_dir() + "-artifacts"
         if input(f"Delete {artifacts_dir} directory? (y/N)\n>") \
                 in ('y', 'yes', 'Y', 'YES'):
-            os.system(f"rm -rf {artifacts_dir}")
+            sys.exit(command_execution(f"rm -rf {artifacts_dir}"))
 
-    # if args.test:
-    if args.selector == 'test':
+    elif args.selector == 'test':
         # For dev purpose only
         print("Test of simpleci install succeded!")
 

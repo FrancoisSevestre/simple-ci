@@ -1,8 +1,5 @@
 * TODO
-- [x] Create a pip package
-- [x] move functions to module file
-- [x] Include packaging in pipeline
-- [x] Write a proper pipeline
+- [x] Replace every 'os.sys' and 'subprocess.getouput' by run
 - [ ] Format simple-ci.log
 - [ ] Implement cron
 - [ ] Conditionnals
@@ -14,11 +11,11 @@
 - [ ] Check file existence in start delete and init
 - [ ] Run jobs concomitantly
 - [ ] mount volumes in docker
-- [x] parse arguments with argparse
+- [ ] Rename run-artifacts folders with run number
+- [ ] move simple.log in run folder
 - FIX:
--- [x] Not return on errors
 -- [ ] No error when artifact not found
--- [x] Raise error if docker is not accessible
+-- [x] Error accessing simple.log in root
 
 * DONE
 - basics:
@@ -48,6 +45,15 @@
 --- Command returned error
 --- Container isn't running
 --- bad syntax (no jobs, no script)
+- [x] Create a pip package
+- [x] move functions to module file
+- [x] Include packaging in pipeline
+- [x] Write a proper pipeline
+- [x] parse arguments with argparse
+
+- FIX:
+-- [x] Not return on errors
+-- [x] Raise error if docker is not accessible
 
 - Wiki:
 -- [x] Find how to make a wiki
