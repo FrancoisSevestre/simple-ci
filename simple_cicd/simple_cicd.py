@@ -141,6 +141,8 @@ def main():
                         for job in stage['jobs']:
                             job_time_summary = ""
                             job_name = str(job)
+                            run_name = stage_name + "_" + job_name
+                            run_name = ''.join(e for e in run_name if e.isalnum())
                             log("#### Job \'" + job_name + "\' ####", "green")
 
                             ### Job scope ###
@@ -168,7 +170,7 @@ def main():
                             if 'script' in job:         # Check if user defined script in this job
                                 job_script = job['script']
                                 script_parameters = [job_script, job_env, job_docker, \
-                                        job_artifacts, get_root_dir(), sudo_prefix]
+                                        job_artifacts, get_root_dir(), sudo_prefix, run_name]
                                 exec_time = run_script(script_parameters)
                                 job_time_summary += \
                                         f"|-->\t{job_name} ({float(f'{exec_time:.2f}')}s)\n"
@@ -191,6 +193,8 @@ def main():
                     for job in data['jobs']:
                         job_time_summary = ""
                         job_name = str(job)
+                        run_name = job_name
+                        run_name = ''.join(e for e in run_name if e.isalnum())
                         log("#### Job \'" + job_name + "\' ####", "green")
 
                         ### Job scope ###
@@ -218,7 +222,7 @@ def main():
                         if 'script' in job:         # Check if user defined script in this job
                             job_script = job['script']
                             script_parameters = [job_script, job_env, job_docker, \
-                                    job_artifacts, get_root_dir(), sudo_prefix]
+                                    job_artifacts, get_root_dir(), sudo_prefix, run_name]
                             exec_time = run_script(script_parameters)
                             job_time_summary += f"{job_name} ({float(f'{exec_time:.2f}')}s)\n"
                         else:
@@ -229,10 +233,11 @@ def main():
 
             # Script
                 else:
+                    run_name = "simple"
                     if 'script' in data:         # Check if user defined script in this job
                         global_script = data['script']
                         script_parameters = [global_script, global_env, global_docker, \
-                                global_artifacts, get_root_dir(), sudo_prefix]
+                                global_artifacts, get_root_dir(), sudo_prefix, run_name]
                         exec_time = run_script(script_parameters)
                         time_summary += f"Script ({float(f'{exec_time:.2f}')}s)\n"
                     else:

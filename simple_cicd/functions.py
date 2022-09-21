@@ -229,7 +229,7 @@ def stop_container(cont_id, sudo_prefix=""):
         log("[stop_container]\n"+res[1], "error")
         end_of_pipeline()
 
-def create_artifacts_folder(git_root_dir):
+def create_artifacts_folder(git_root_dir, run_name):
     """
     Creates an artifacts folder next to the git folder with same name + '-artifacts'.
     Also creates a sub-folder name after launch time.
@@ -241,9 +241,19 @@ def create_artifacts_folder(git_root_dir):
     except FileExistsError:
         pass
 
-    run_dir = os.path.join(artifacts_dir_to_be_created,\
-            datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
-    for i in (0,1,2):
+    # list dirs in artifacts_dir_to_be_created
+    run_dir = "/tmp"
+    dir_list = os.listdir(artifacts_dir_to_be_created)
+    run_count = 1
+    while True:
+        if str(run_count)+"_"+run_name in dir_list:
+            run_count += 1
+        else:
+            run_dir = os.path.join(artifacts_dir_to_be_created,\
+                    str(run_count)+"_"+run_name)
+            break
+
+    for i in (0,1,2): # If folder already exists (unlikely)
         try:
             os.mkdir(run_dir)             # Create the run folder
             break
@@ -266,14 +276,15 @@ def run_script(script_parameters_to_run):
     job_artifacts_to_run = script_parameters_to_run[3]
     git_root_dir = script_parameters_to_run[4]
     sudo_prefix = script_parameters_to_run[5]
+    run_name = script_parameters_to_run[6]
 
     start_script_time = time.time()
 
     # Prepare artifacts folder
     if job_artifacts_to_run:
-        current_artifacts_dir = create_artifacts_folder(git_root_dir)
+        current_artifacts_dir = create_artifacts_folder(git_root_dir, run_name)
     else:
-        current_artifacts_dir = create_artifacts_folder("/tmp/simpleci")
+        current_artifacts_dir = create_artifacts_folder("/tmp/simpleci", run_name)
 
     if job_docker_to_run != {}: # For inside_docker execution
         log(f"A \'{job_docker_to_run['image']}\' container is required.", "blue")
@@ -304,7 +315,9 @@ def run_script(script_parameters_to_run):
                 res = command_execution_getoutput\
                         (f"{sudo_prefix} docker cp {container_id}:{file} {current_artifacts_dir}")
                 if not res[0]:
-                    log("[run_script:inside_docker:artifacts]\n"+res[1], "error")
+                    # log("[run_script:inside_docker:artifacts]\n"+res[1], "error")
+                    log(f"Artifact \'{file}\' couldn't be found.", "error")
+                    log("-> Check the pipeline syntax.", "red")
                     end_of_pipeline()
                 log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.", "blue")
 
@@ -333,7 +346,9 @@ def run_script(script_parameters_to_run):
                 res = command_execution_getoutput(f"{sudo_prefix} cp -r -t \
                         {current_artifacts_dir} {tmp_artifacts_dir}/{file} ")
                 if not res[0]:
-                    log("[run_script:shell:artifacts]\n"+res[1], "error")
+                    # log("[run_script:shell:artifacts]\n"+res[1], "error")
+                    log(f"Artifact \'{file}\' couldn't be found.", "error")
+                    log("-> Check the pipeline syntax.", "red")
                     end_of_pipeline()
                 log(f"Artifact \"{file}\" saved in {current_artifacts_dir}.", "blue")
 

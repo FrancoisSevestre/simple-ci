@@ -11,10 +11,10 @@
 - [ ] Check file existence in start delete and init
 - [ ] Run jobs concomitantly
 - [ ] mount volumes in docker
-- [ ] Rename run-artifacts folders with run number
+- [x] Rename run-artifacts folders with run number
 - [ ] move simple.log in run folder
 - FIX:
--- [ ] No error when artifact not found
+-- [x] No error when artifact not found
 -- [x] Error accessing simple.log in root
 
 * DONE

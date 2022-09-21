@@ -1,0 +1,34 @@
+---
+stages:
+  - test
+  - build
+
+test:
+  jobs:
+    - say hello
+    - get infos
+
+build:
+  jobs:
+    - say goodbye
+
+say hello:
+  artifacts:
+    paths:
+      - file1
+  script:
+    - echo "hello world" | tee file1
+
+get infos:
+  artifacts:
+    paths:
+      - file2
+  script:
+    - cat /etc/os-release | tee file2
+
+say goodbye:
+  artifacts:
+    paths:
+      - file1
+  script:
+    - echo "Goodbye world" | tee file1
